@@ -1,0 +1,14 @@
+
+    .navbar {
+        max-height: auto; /* Cambiar a la altura deseada */
+    }
+    .welcome-message {
+        color: inherit; /* Hereda el color del texto del Navbar */
+        padding: 5px 10px; /* Añade espaciado alrededor del mensaje para hacerlo más destacado */
+    }
+    
+    .username {
+        color: #7da467; /* Cambia el color del nombre de usuario a rojo */
+        font-weight: normal; /* Establece el peso de la fuente a normal (no negrita) */
+    }
+    
