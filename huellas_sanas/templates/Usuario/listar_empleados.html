@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de empleados{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h2>Lista de empleados</h2>
+
+        <!-- Agregar mensajes de éxito -->
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <!-- Botón para agregar empleado -->
+        <a href="{% url 'agregar_empleado' %}" class="btn btn-success mb-2">Agregar Empleado</a>
+
+        <form method="GET" class="form-inline mb-2">
+            <div class="form-group">
+                <label for="search-username">Buscar por nombre de usuario:</label>
+                <input type="text" class="form-control mx-2" id="search-username" name="username" placeholder="usuario@huellassanas.cl">
+            </div>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+        <form method="GET" class="form-inline mb-2">
+            <div class="form-group">
+                <label for="search-username">Buscar por RUT:</label>
+                <input type="text" class="form-control mx-2" id="search-rut" name="rut" placeholder="XX.XXX.XXX-X">
+            </div>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Usuario</th>
+                    <th>RUT</th>
+                    <th>Nombre</th>
+                    <th>Primer Apellido</th>
+                    <th>Segundo Apellido</th>
+                    <th>Fecha de Nacimiento</th>
+                    <th>Número de Teléfono</th>
+                    <th>Rol en la Empresa</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in empleados %}
+                <tr>
+                    <td>{{ c.id }}</td>
+                    <td>{{ c.user }}</td>
+                    <td>{{ c.rut }}</td> <!-- Agregar campo RUT -->
+                    <td>{{ c.user.first_name }}</td>
+                    <td>{{ c.user.last_name }}</td>
+                    <td>{{ c.second_last_name }}</td> <!-- Agregar campo Segundo Apellido -->
+                    <td>{{ c.fecha_nacimiento }}</td> <!-- Agregar campo Fecha de Nacimiento -->
+                    <td>{{ c.numero_telefono }}</td> <!-- Agregar campo Número de Teléfono -->
+                    <td>{{ c.rol }}</td>
+                    <td>
+                        <!-- Botones para editar y borrar empleado -->
+                        <a href="{% url 'editar_empleado' c.id %}" class="btn btn-primary btn-sm">Editar</a>
+                        <a href="{% url 'confirmar_borrar_empleado' c.id %}" class="btn btn-danger btn-sm">Borrar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+<!-- Mostrar la página actual del total de páginas con espacio inferior -->
+<span class="current-page ml-2 mb-2">Página {{ empleados.number }} de {{ empleados.paginator.num_pages }}</span>
+
+<div class="pagination mt-2"> <!-- Agrega espacio superior -->
+    {% if empleados.has_previous %}
+        <a class="btn btn-secondary ml-2" href="?page=1">Primera</a>
+        <a class="btn btn-primary ml-2" href="?page={{ empleados.previous_page_number }}">Anterior</a>
+    {% endif %}
+
+    {% if empleados.has_next %}
+        <a class="btn btn-primary ml-2" href="?page={{ empleados.next_page_number }}">Siguiente</a>
+        <a class="btn btn-secondary ml-2" href="?page={{ empleados.paginator.num_pages }}">Última</a>
+    {% endif %}
+
+    {% if has_search_query_username or has_search_query_rut %}
+        <a href="{% url 'listar_empleados' %}" class="btn btn-secondary">Volver atrás</a>
+    {% endif %}
+
+    </div>
+{% endblock %}
