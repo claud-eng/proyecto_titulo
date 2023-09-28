@@ -2,6 +2,8 @@ from django.urls import path, include  # Importa path para definir rutas de URL 
 from . import views  # Importa las vistas definidas en el directorio actual (directorio donde se encuentra este archivo)
 
 urlpatterns = [
+    # Ruta para gestionar las cuentas siendo administrador
+    path('gestionar_cuentas', views.gestionar_cuentas, name='gestionar_cuentas'),
     # Rutas para clientes
     # Listar los clientes de la bd
     path('listar_clientes', views.listar_clientes, name="listar_clientes"),
