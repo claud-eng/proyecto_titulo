@@ -194,4 +194,6 @@ def editar_empleado(request, empleado_id):
         })
     return render(request, "Usuario/editar_empleado.html", {'form': form})
 
-
+def gestionar_cuentas(request):
+    # Aquí puedes agregar la lógica para gestionar cuentas de usuarios
+    return render(request, 'Usuario/gestionar_cuentas.html')

@@ -87,6 +87,9 @@
     {% if has_search_query_username or has_search_query_rut %}
         <a href="{% url 'listar_empleados' %}" class="btn btn-secondary">Volver atrás</a>
     {% endif %}
-
-    </div>
+    <!-- Mostrar el botón "Volver atrás" solo si el usuario es un empleado con rol de administrador -->
+    {% if user.is_authenticated and user.empleado and user.empleado.rol == 'Administrador' %}
+        <a href="{% url 'gestionar_cuentas' %}" class="btn btn-danger ml-2">Volver al menú principal</a>
+    {% endif %}
+</div>
 {% endblock %}

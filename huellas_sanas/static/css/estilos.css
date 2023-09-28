@@ -12,3 +12,6 @@
         font-weight: normal; /* Establece el peso de la fuente a normal (no negrita) */
     }
     
+    .agendar-hora {
+        font-weight: bold;
+    }
