@@ -65,14 +65,5 @@
             }
         });
 
-        // Habilitar Datepicker en el campo fecha_nacimiento
-        $(function() {
-            $("#{{ form.fecha_nacimiento.id_for_label }}").datepicker({
-                dateFormat: "yy-mm-dd",  // Formato de fecha deseado (YYYY-MM-DD)
-                changeMonth: true,
-                changeYear: true,
-                yearRange: "1900:2030"  // Rango de años permitidos
-            });
-        });
     </script>
 {% endblock %}

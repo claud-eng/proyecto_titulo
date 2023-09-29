@@ -9,7 +9,7 @@ class Cliente(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # Relación uno a uno con el modelo User de Django
     rut = models.CharField(max_length=12, default='')  # Campo para el RUT del cliente
     second_last_name = models.CharField(max_length=150, default='')  # Segundo apellido del cliente
-    fecha_nacimiento = models.DateField(default='')  # Fecha de nacimiento del cliente
+    fecha_nacimiento = models.DateField()  # Fecha de nacimiento del cliente
     numero_telefono = models.CharField(max_length=15, default='')  # Número de teléfono del cliente
     
     def __str__(self):
@@ -26,7 +26,7 @@ class Empleado(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # Relación uno a uno con el modelo User de Django
     rut = models.CharField(max_length=12, default='')  # Campo para el RUT del empleado
     second_last_name = models.CharField(max_length=150, default='')  # Segundo apellido del empleado
-    fecha_nacimiento = models.DateField(default='1')  # Fecha de nacimiento del empleado 
+    fecha_nacimiento = models.DateField()  # Fecha de nacimiento del empleado 
     numero_telefono = models.CharField(max_length=15, default='')  # Número de teléfono del empleado
     rol = models.CharField(max_length=50, choices=ROLE_CHOICES)  # Campo para el rol del empleado
     
