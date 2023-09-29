@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Agendar Cita{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Agendar Cita</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-primary">Agendar Cita</button>
+    {% if user.is_authenticated %}
+    {% if user.empleado and user.empleado.rol == 'Recepcionista' %}
+        <a href="{% url 'listar_citas' %}" class="btn btn-secondary">Volver atrás</a>
+    {% else %}
+        <a href="{% url 'login' %}" class="btn btn-secondary">Volver atrás</a>
+    {% endif %}
+{% else %}
+    <a href="{% url 'login' %}" class="btn btn-secondary">Volver atrás</a>
+{% endif %}
+  </form>
+</div>
+{% endblock %}

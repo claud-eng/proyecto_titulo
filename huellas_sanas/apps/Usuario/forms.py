@@ -112,7 +112,7 @@ class ClienteForm(forms.ModelForm):
     fecha_nacimiento = forms.DateField(
         required=True,
         label='Fecha de Nacimiento',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'YYYY-MM-DD'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}),
     )
     numero_telefono = forms.CharField(
         max_length=15,
@@ -209,7 +209,7 @@ class EditarClienteForm(forms.ModelForm):
     fecha_nacimiento = forms.DateField(
         required=True,
         label='Fecha de Nacimiento',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'YYYY-MM-DD'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}),
     )
     numero_telefono = forms.CharField(
         max_length=15,
@@ -309,7 +309,7 @@ class EmpleadoForm(forms.ModelForm):
     fecha_nacimiento = forms.DateField(
         required=True,
         label='Fecha de Nacimiento',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'YYYY-MM-DD'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}),
     )
     numero_telefono = forms.CharField(
         max_length=15,
@@ -402,7 +402,7 @@ class EditarEmpleadoForm(forms.ModelForm):
     fecha_nacimiento = forms.DateField(
         required=True,
         label='Fecha de Nacimiento',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'YYYY-MM-DD'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}),
     )
     numero_telefono = forms.CharField(
         max_length=15,

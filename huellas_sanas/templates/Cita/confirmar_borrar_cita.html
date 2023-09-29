@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Borrado de Cita{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2>Confirmar Borrado</h2>
+            <p>¿Estás seguro de que deseas eliminar la cita?</p>
+            <p><strong>Cliente:</strong> {{ cita.cliente.user.username }}</p>
+            <p><strong>Veterinario:</strong> {{ cita.veterinario.user.username }}</p>
+            <p><strong>Mascota:</strong> {{ cita.mascota.nombre }}</p>
+            <p><strong>Fecha:</strong> {{ cita.fecha }}</p>
+            <p><strong>Hora:</strong> {{ cita.hora }}</p>
+            <p><strong>Motivo:</strong> {{ cita.get_motivo_display }}</p>
+            <p><strong>Estado:</strong> {{ cita.get_estado_display }}</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Confirmar Borrado</button>
+                <a href="{% url 'listar_citas' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
