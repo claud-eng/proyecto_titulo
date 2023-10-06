@@ -1,0 +1,29 @@
+<!-- Cita/confirmar_cancelar_cita.html -->
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+          <h2>Confirmar Cancelación de Cita</h2>
+          <p>Por favor, confirma la cancelación de la siguiente cita:</p>
+          {% if user.is_authenticated and not user.cliente %}
+          <p>ID de Cita: {{ cita.id }}</p>
+          {% endif %}
+          <p>Cliente: {{ cita.cliente.user.username }}</p>
+          <p>Veterinario: {{ cita.veterinario.user.username }}</p>
+          <p>Mascota: {{ cita.mascota.nombre }}</p>
+          <p>Fecha: {{ cita.fecha }}</p>
+          <p>Hora: {{ cita.hora }}</p>
+          <p>Motivo: {{ cita.get_motivo_display }}</p>
+          <p>Estado: {{ cita.get_estado_display }}</p>
+        
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Confirmar Cancelación</button>
+            <a href="{% url 'listar_citas' %}" class="btn btn-secondary">Cancelar</a>
+          </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -9,13 +9,18 @@ from apps.Cita.models import Mascota # Importa la clase Mascota
 
 # Clase para registrar fichas médicas y tratamientos para las mascotas
 class Ficha(models.Model):
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, default=1)
     mascota = models.ForeignKey(Mascota, on_delete=models.CASCADE)  # Relación con la mascota asociada a la ficha
-    veterinario = models.ForeignKey(User, on_delete=models.CASCADE)  # Relación con el veterinario que crea la ficha
+    veterinario = models.ForeignKey(
+        Empleado,
+        on_delete=models.CASCADE,
+        limit_choices_to={'rol': 'Veterinario'}  # Filtra por el rol 'Veterinario'
+    )
     fecha = models.DateField()
     medicamento = models.CharField(max_length=100)
     dosis = models.CharField(max_length=50)
     instrucciones = models.TextField()
 
     def __str__(self):
-        return f'Ficha para {self.mascota.nombre} por {self.veterinario.username} el {self.fecha}'
+        return f'Ficha para {self.mascota.nombre} por {self.veterinario.user.username} el {self.fecha}'
     

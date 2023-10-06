@@ -33,7 +33,7 @@
             <button type="submit" class="btn btn-primary">Buscar</button>
         </form>
 
-        <table class="table">
+        <table class="table table-responsive">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -70,26 +70,41 @@
             </tbody>
         </table>
         
-<!-- Mostrar la página actual del total de páginas con espacio inferior -->
-<span class="current-page ml-2 mb-2">Página {{ empleados.number }} de {{ empleados.paginator.num_pages }}</span>
-
-<div class="pagination mt-2"> <!-- Agrega espacio superior -->
-    {% if empleados.has_previous %}
-        <a class="btn btn-secondary ml-2" href="?page=1">Primera</a>
-        <a class="btn btn-primary ml-2" href="?page={{ empleados.previous_page_number }}">Anterior</a>
-    {% endif %}
-
-    {% if empleados.has_next %}
-        <a class="btn btn-primary ml-2" href="?page={{ empleados.next_page_number }}">Siguiente</a>
-        <a class="btn btn-secondary ml-2" href="?page={{ empleados.paginator.num_pages }}">Última</a>
-    {% endif %}
-
-    {% if has_search_query_username or has_search_query_rut %}
-        <a href="{% url 'listar_empleados' %}" class="btn btn-secondary">Volver atrás</a>
-    {% endif %}
-    <!-- Mostrar el botón "Volver atrás" solo si el usuario es un empleado con rol de administrador -->
-    {% if user.is_authenticated and user.empleado and user.empleado.rol == 'Administrador' %}
-        <a href="{% url 'gestionar_cuentas' %}" class="btn btn-danger ml-2">Volver al menú principal</a>
-    {% endif %}
-</div>
+        <nav aria-label="Paginación">
+            <ul class="pagination">
+              {% if empleados.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page=1">Primera</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ empleados.previous_page_number }}">Anterior</a>
+                </li>
+              {% endif %}
+            
+              {% for i in empleados.paginator.page_range %}
+                <li class="page-item{% if i == empleados.number %} active{% endif %}">
+                  <a class="page-link" href="?page={{ i }}">{{ i }}{% if i == empleados.number %} <span class="sr-only">(current)</span>{% endif %}</a>
+                </li>
+              {% endfor %}
+            
+              {% if empleados.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ empleados.next_page_number }}">Siguiente</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ empleados.paginator.num_pages }}">Última</a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+          
+          <!-- "Volver atrás" con la clase btn btn-secondary -->
+          {% if has_search_query_username or has_search_query_rut %}
+            <a href="{% url 'listar_empleados' %}" class="btn btn-secondary">Volver atrás</a>
+          {% endif %}
+          
+          <!-- "Volver al menú principal" con la clase btn btn-danger ml-2 -->
+          {% if user.is_authenticated and user.empleado and user.empleado.rol == 'Administrador' %}
+            <a href="{% url 'gestionar_cuentas' %}" class="btn btn-danger">Volver al menú principal</a>
+          {% endif %}
 {% endblock %}

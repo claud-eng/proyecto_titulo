@@ -15,8 +15,10 @@
         </ul>
     {% endif %}
 
-    <!-- Botón para agregar una nueva cita -->
-    <a href="{% url 'agendar_cita' %}" class="btn btn-success mb-2">Agendar Cita</a>
+    <!-- Botón para agregar una nueva cita (solo para clientes y recepcionistas) -->
+    {% if user.cliente or user.empleado.rol == 'Recepcionista' %}
+        <a href="{% url 'agendar_cita' %}" class="btn btn-success mb-2">Agendar Cita</a>
+    {% endif %}
 
     <!-- Filtros de búsqueda -->
     <form method="GET" class="form-inline mb-2">
@@ -27,10 +29,12 @@
         <button type="submit" class="btn btn-primary">Buscar</button>
     </form>
 
-    <table class="table">
+    <table class="table table-responsive">
         <thead>
             <tr>
+              {% if user.is_authenticated and not user.cliente %}
                 <th>ID</th>
+                {% endif %}
                 <th>Cliente</th>
                 <th>Veterinario</th>
                 <th>Mascota</th>
@@ -44,7 +48,9 @@
         <tbody>
             {% for cita in citas %}
                 <tr>
+                  {% if user.is_authenticated and not user.cliente %}
                     <td>{{ cita.id }}</td>
+                    {% endif %}
                     <td>{{ cita.cliente.user.username }}</td>
                     <td>{{ cita.veterinario.user.username }}</td>
                     <td>{{ cita.mascota.nombre }}</td>
@@ -53,25 +59,47 @@
                     <td>{{ cita.get_motivo_display }}</td>
                     <td>{{ cita.get_estado_display }}</td>
                     <td>
-                        <a href="{% url 'editar_cita' cita.id %}" class="btn btn-primary btn-sm">Editar</a>
-                        <a href="{% url 'confirmar_borrar_cita' cita.id %}" class="btn btn-danger btn-sm">Borrar</a>
+                      <div class="d-flex align-items-center">
+                        {% if user.empleado and user.empleado.rol == 'Recepcionista' %}
+                            <a href="{% url 'editar_cita' cita.id %}" class="btn btn-primary btn-sm">Editar</a>
+                            <a href="{% url 'confirmar_borrar_cita' cita.id %}" class="btn btn-danger btn-sm ml-2">Borrar</a>
+                        {% endif %}
+                        {% if user.cliente or user.empleado and user.empleado.rol == 'Recepcionista' %}
+                            <a href="{% url 'confirmar_cancelar_cita' cita.id %}" class="btn btn-warning btn-sm ml-2">Cancelar</a>
+                        {% endif %}
+                    </div>
                     </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <!-- Paginación -->
-    <div class="pagination mt-2">
-        {% if citas.has_previous %}
-            <a class="btn btn-secondary ml-2" href="?page=1">Primera</a>
-            <a class="btn btn-primary ml-2" href="?page={{ citas.previous_page_number }}">Anterior</a>
-        {% endif %}
-
-        {% if citas.has_next %}
-            <a class="btn btn-primary ml-2" href="?page={{ citas.next_page_number }}">Siguiente</a>
-            <a class="btn btn-secondary ml-2" href="?page={{ citas.paginator.num_pages }}">Última</a>
-        {% endif %}
-    </div>
+    <nav aria-label="Paginación">
+        <ul class="pagination">
+          {% if citas.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1">Primera</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ citas.previous_page_number }}">Anterior</a>
+            </li>
+          {% endif %}
+      
+          {% for i in citas.paginator.page_range %}
+            <li class="page-item{% if i == citas.number %} active{% endif %}">
+              <a class="page-link" href="?page={{ i }}">{{ i }}{% if i == citas.number %} <span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+          {% endfor %}
+      
+          {% if citas.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ citas.next_page_number }}">Siguiente</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ citas.paginator.num_pages }}">Última</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
 </div>
 {% endblock %}

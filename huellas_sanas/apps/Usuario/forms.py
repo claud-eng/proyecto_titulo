@@ -18,6 +18,10 @@ from django.core.exceptions import ValidationError
 import re
 from django.contrib.auth.hashers import make_password  # Agrega esta importación en la parte superior
 
+from django.contrib.auth.forms import UserChangeForm
+
+from django.contrib.auth.forms import PasswordChangeForm
+
 def validate_username(value):
     """
     Valida que 'value' sea un correo electrónico con el dominio @huellassanas.cl.
@@ -159,19 +163,20 @@ class EditarClienteForm(forms.ModelForm):
     )
 
     def clean_username(self):
-        # Validación adicional: asegura que el nombre de usuario no esté en uso.
+        # Validación adicional: asegura que el nombre de usuario no esté en uso,
+        # solo si el valor ha cambiado
         username = self.cleaned_data['username']
-    
-        # Verificar si el dominio es "@huellassanas.cl"
-        if username.endswith('@huellassanas.cl'):
-            raise forms.ValidationError('No se permite registrar un cliente con el dominio @huellassanas.cl.')
+        if username != self.instance.user.username:
+            # Verificar si el dominio es "@huellassanas.cl"
+            if username.endswith('@huellassanas.cl'):
+                raise forms.ValidationError('No se permite registrar un cliente con el dominio @huellassanas.cl.')
 
-        # Verificar si el nombre de usuario ya está en uso.
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError('El nombre de usuario ya está en uso.')
-    
+            # Verificar si el nombre de usuario ya está en uso.
+            if User.objects.filter(username=username).exists():
+                raise forms.ValidationError('El nombre de usuario ya está en uso.')
+
         return username
-
+    
     # Campos personalizados para el nombre y apellido
     first_name = forms.CharField(
         max_length=30,
@@ -242,6 +247,59 @@ class EditarClienteForm(forms.ModelForm):
 
         return cliente
 
+class CustomClienteForm(forms.ModelForm):
+    
+    # Campo personalizado para el nombre de usuario (correo electrónico)
+    username = forms.EmailField(
+        max_length=150,
+        required=True,
+        label='Usuario (Correo Electrónico)',
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'usuario@gmail.com'}),
+        # No incluir la validación de validate_username
+    )
+
+    def clean_username(self):
+        # Validación adicional: asegura que el nombre de usuario no esté en uso,
+        # solo si el valor ha cambiado
+        username = self.cleaned_data['username']
+        if username != self.instance.user.username:
+            # Verificar si el dominio es "@huellassanas.cl"
+            if username.endswith('@huellassanas.cl'):
+                raise forms.ValidationError('No se permite registrar un cliente con el dominio @huellassanas.cl.')
+
+            # Verificar si el nombre de usuario ya está en uso.
+            if User.objects.filter(username=username).exists():
+                raise forms.ValidationError('El nombre de usuario ya está en uso.')
+
+        return username
+    
+    first_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    rut = forms.CharField(
+        max_length=12,
+        required=True,
+        label='RUT',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingresar con puntos y guión: XX.XXX.XXX-X'}),
+        validators=[validate_rut_chileno],  # Aplicar la validación personalizada
+    )
+
+    def clean_rut(self):
+        # Validación adicional: convierte la letra 'K' (si existe) a mayúscula antes de guardar
+        rut = self.cleaned_data['rut']
+        rut = rut.upper()
+        return rut
+    second_last_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    fecha_nacimiento = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    numero_telefono = forms.CharField(max_length=15, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = Cliente
+        fields = ['username', 'first_name', 'last_name', 'rut', 'second_last_name', 'fecha_nacimiento', 'numero_telefono']
+
+class CambiarContraseñaClienteForm(PasswordChangeForm):
+    class Meta:
+        model = User  # Utiliza el modelo User de Django
+        fields = ('old_password', 'new_password1', 'new_password2')  # Campos para cambiar la contraseña
 
 class EmpleadoForm(forms.ModelForm):
     # Definición de un formulario para crear empleados.

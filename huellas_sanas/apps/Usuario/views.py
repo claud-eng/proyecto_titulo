@@ -4,6 +4,10 @@ from .forms import ClienteForm, EmpleadoForm, EditarClienteForm, EditarEmpleadoF
 from django.contrib import messages  # Importa la clase para trabajar con mensajes de Django
 from django.contrib.auth.hashers import make_password  # Importa la función para crear contraseñas seguras
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage  # Importa clases y funciones para paginación
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .forms import CustomClienteForm
+from .forms import CambiarContraseñaClienteForm
 
 # Create your views here.
 
@@ -78,27 +82,69 @@ def borrar_cliente(request, cliente_id):
     return redirect('listar_clientes')  # Redirige a la lista de clientes después de borrar
 
 def editar_cliente(request, cliente_id):
-    # Vista para editar la información de un cliente existente
-
     instancia = Cliente.objects.get(id=cliente_id)
+    user = instancia.user  # Obtener el usuario existente
 
     if request.method == "POST":
         form = EditarClienteForm(request.POST, instance=instancia)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Cliente editado con éxito.')  # Agrega mensaje de éxito
-            return redirect('listar_clientes')  # Redirige a la lista de clientes después de editar
+            # Actualizar el usuario existente con el nuevo username
+            user.username = form.cleaned_data['username']
+            user.first_name = form.cleaned_data['first_name']
+            user.last_name = form.cleaned_data['last_name']
+            user.save()  # Guardar el usuario actualizado
+
+            # Continuar con la actualización del cliente
+            cliente = form.save()
+
+            messages.success(request, 'Cliente editado con éxito.')
+            return redirect('listar_clientes')
     else:
-        form = EditarClienteForm(initial={
-            'username': instancia.user.username,
-            'first_name': instancia.user.first_name,
-            'last_name': instancia.user.last_name,
-            'rut': instancia.rut,
-            'second_last_name': instancia.second_last_name,
-            'fecha_nacimiento': instancia.fecha_nacimiento,
-            'numero_telefono': instancia.numero_telefono,
+        # Pasar los valores actuales como valores iniciales al formulario
+        form = EditarClienteForm(instance=instancia, initial={
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
         })
+
     return render(request, "Usuario/editar_cliente.html", {'form': form})
+
+def actualizar_datos_personales_cliente(request):
+    user = request.user
+    cliente = user.cliente
+    
+    if request.method == 'POST':
+        form = CustomClienteForm(request.POST, instance=cliente)
+        if form.is_valid():
+            user.username = form.cleaned_data['username']
+            user.first_name = form.cleaned_data['first_name']
+            user.last_name = form.cleaned_data['last_name']
+            user.save()
+            form.save()
+            messages.success(request, 'Cambios guardados con éxito.')
+    else:
+        # En el bloque "else", crea el formulario con datos iniciales adecuados
+        fecha_nacimiento = cliente.fecha_nacimiento.strftime('%Y-%m-%d') if cliente.fecha_nacimiento else ''
+        form = CustomClienteForm(instance=cliente, initial={
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'fecha_nacimiento': fecha_nacimiento,
+        })
+    
+    return render(request, 'Usuario/actualizar_datos_personales_cliente.html', {'form': form})
+
+@login_required
+def cambiar_contraseña_cliente(request):
+    if request.method == 'POST':
+        form = CambiarContraseñaClienteForm(request.user, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Contraseña cambiada con éxito.')
+    else:
+        form = CambiarContraseñaClienteForm(request.user)
+    
+    return render(request, 'Usuario/cambiar_contraseña_cliente.html', {'form': form})
 
 def listar_empleados(request):
     # Vista para listar empleados con opciones de búsqueda y paginación
@@ -171,27 +217,31 @@ def borrar_empleado(request, empleado_id):
     return redirect('listar_empleados')  # Redirige a la lista de empleados después de borrar
 
 def editar_empleado(request, empleado_id):
-    # Vista para editar la información de un empleado existente
-
     instancia = Empleado.objects.get(id=empleado_id)
+    user = instancia.user  # Obtener el usuario existente
 
     if request.method == "POST":
         form = EditarEmpleadoForm(request.POST, instance=instancia)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Empleado editado con éxito.')  # Agrega mensaje de éxito
-            return redirect('listar_empleados')  # Redirige a la lista de empleados después de editar
+            # Actualizar el usuario existente con el nuevo username
+            user.username = form.cleaned_data['username']
+            user.first_name = form.cleaned_data['first_name']
+            user.last_name = form.cleaned_data['last_name']
+            user.save()  # Guardar el usuario actualizado
+
+            # Continuar con la actualización del empleado
+            empleado = form.save()
+
+            messages.success(request, 'Empleado editado con éxito.')
+            return redirect('listar_empleados')
     else:
-        form = EditarEmpleadoForm(initial={
-            'username': instancia.user.username,
-            'first_name': instancia.user.first_name,
-            'last_name': instancia.user.last_name,
-            'rol': instancia.rol,
-            'rut': instancia.rut,
-            'second_last_name': instancia.second_last_name,
-            'fecha_nacimiento': instancia.fecha_nacimiento,
-            'numero_telefono': instancia.numero_telefono,
+        # Pasar los valores actuales como valores iniciales al formulario
+        form = EditarEmpleadoForm(instance=instancia, initial={
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
         })
+
     return render(request, "Usuario/editar_empleado.html", {'form': form})
 
 def gestionar_cuentas(request):

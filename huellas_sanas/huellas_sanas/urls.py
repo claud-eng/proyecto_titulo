@@ -21,13 +21,17 @@ from django.shortcuts import render
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
-
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', lambda request: render(request, 'home.html'), name='home'),
     path('usuario/', include('apps.Usuario.urls')),
     path('cita/', include('apps.Cita.urls')),
+    path('cuidado/', include('apps.Cuidado.urls')),
+    path('transaccion/', include('apps.Transaccion.urls')),
+    path('enviar_consulta/', views.enviar_consulta, name='enviar_consulta'),
+    path('consulta_exitosa/', views.consulta_exitosa, name='consulta_exitosa'),
     path('login/', auth_views.LoginView.as_view(template_name='Usuario/login.html'), name='login'),
  # Login and Logout
     path('login/', LoginView.as_view(redirect_authenticated_user=True,template_name='Usuario/login.html'), name='login'),

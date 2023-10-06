@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Productos{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Lista de Productos</h2>
+
+    <!-- Agregar mensajes de éxito o error -->
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if user.empleado and user.empleado.rol == 'Administrador' %}
+    <!-- Botón para agregar un nuevo producto -->
+    <a href="{% url 'agregar_producto' %}" class="btn btn-success mb-2">Agregar Producto</a>
+    {% endif %}
+    <!-- Filtros de búsqueda -->
+    <form method="GET" class="form-inline mb-2">
+        <div class="form-group">
+            <label for="search-nombre">Buscar por Nombre:</label>
+            <input type="text" class="form-control mx-2" id="search-nombre" name="nombre" placeholder="Nombre del Producto">
+        </div>
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Marca</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Cantidad en Stock</th>
+                {% if user.empleado and user.empleado.rol == 'Administrador' %}
+                <th>Acciones</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.nombre }}</td>
+                    <td>{{ producto.marca }}</td>
+                    <td>{{ producto.descripcion }}</td>
+                    <td>${{ producto.precio }}</td>
+                    <td>{{ producto.cantidad_stock }}</td>
+                    {% if user.empleado and user.empleado.rol == 'Administrador' %}
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <a href="{% url 'editar_producto' producto.id %}" class="btn btn-primary btn-sm">Editar</a>
+                            <a href="{% url 'confirmar_borrar_producto' producto.id %}" class="btn btn-danger btn-sm ml-2">Borrar</a>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <nav aria-label="Paginación">
+        <ul class="pagination">
+            {% if productos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">Primera</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ productos.previous_page_number }}">Anterior</a>
+                </li>
+            {% endif %}
+
+            {% for i in productos.paginator.page_range %}
+                <li class="page-item{% if i == productos.number %} active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}{% if i == productos.number %} <span class="sr-only">(current)</span>{% endif %}</a>
+                </li>
+            {% endfor %}
+
+            {% if productos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ productos.next_page_number }}">Siguiente</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ productos.paginator.num_pages }}">Última</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+          <!-- "Volver atrás" con la clase btn btn-secondary -->
+          {% if has_search_query_username or has_search_query_rut %}
+
+        <a href="{% url 'listar_productos' %}"><button class="btn btn-secondary">Volver atrás</button></a>
+
+          {% endif %}
+          
+          <!-- "Volver al menú principal" con la clase btn btn-danger ml-2 -->
+          {% if user.is_authenticated and user.empleado and user.empleado.rol == 'Administrador' or user.empleado.rol == 'Recepcionista' %}
+
+        <a href="{% url 'gestionar_inventario' %}"><button class="btn btn-danger">Volver al menú principal</button></a>
+
+          {% endif %}
+</div>
+{% endblock %}

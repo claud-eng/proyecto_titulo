@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Fichas Médicas{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Lista de Fichas Médicas</h2>
+
+    <!-- Agregar mensajes de éxito o error -->
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <!-- Botón para agregar una nueva ficha (solo para veterinarios) -->
+    {% if user.empleado.rol == 'Veterinario' %}
+        <a href="{% url 'agregar_ficha' %}" class="btn btn-success mb-2">Agregar Ficha</a>
+    {% endif %}
+
+    <!-- Filtros de búsqueda -->
+    <form method="GET" class="form-inline mb-2">
+        <div class="form-group">
+            <label for="search-mascota">Buscar por Mascota:</label>
+            <input type="text" class="form-control mx-2" id="search-mascota" name="mascota" placeholder="Nombre de la Mascota">
+        </div>
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+              {% if user.is_authenticated and not user.cliente %}
+                <th>ID</th>
+                {% endif %}
+                <th>Cliente</th>
+                <th>Mascota</th>
+                <th>Veterinario</th>
+                <th>Fecha</th>
+                <th>Medicamento</th>
+                <th>Dosis</th>
+                <th>Instrucciones</th>
+                {% if user.empleado.rol == 'Veterinario' %}
+                <th>Acciones</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+          {% for ficha in fichas %}
+          <tr>
+            {% if user.is_authenticated and not user.cliente %}
+              <td>{{ ficha.id }}</td>
+              {% endif %}
+              <td>{{ ficha.cliente.user.username }}</td>
+              <td>{{ ficha.mascota.nombre }}</td>
+              <td>{{ ficha.veterinario.user.username }}</td>
+              <td>{{ ficha.fecha }}</td>
+              <td>{{ ficha.medicamento }}</td>
+              <td>{{ ficha.dosis }}</td>
+              <td>{{ ficha.instrucciones }}</td>
+              {% if user.empleado.rol == 'Veterinario' %}
+              <td>
+                  <div class="d-flex align-items-center">
+                          <a href="{% url 'editar_ficha' ficha.id %}" class="btn btn-primary btn-sm">Editar</a>
+                          <a href="{% url 'confirmar_borrar_ficha' ficha.id %}" class="btn btn-danger btn-sm ml-2">Borrar</a>
+                  </div>
+              </td>
+              {% endif %}
+          </tr>
+      {% endfor %}
+        </tbody>
+    </table>
+
+    <nav aria-label="Paginación">
+        <ul class="pagination">
+          {% if fichas.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1">Primera</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ fichas.previous_page_number }}">Anterior</a>
+            </li>
+          {% endif %}
+      
+          {% for i in fichas.paginator.page_range %}
+            <li class="page-item{% if i == fichas.number %} active{% endif %}">
+              <a class="page-link" href="?page={{ i }}">{{ i }}{% if i == fichas.number %} <span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+          {% endfor %}
+      
+          {% if fichas.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ fichas.next_page_number }}">Siguiente</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ fichas.paginator.num_pages }}">Última</a>
+            </li>
+          {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}
