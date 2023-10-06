@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.Cita',
-    'apps.Comunicacion',
     'apps.Cuidado',
     'apps.Reporte',
     'apps.Transaccion',
@@ -138,6 +137,14 @@ MEDIA_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'static-only')
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
+EMAIL_HOST_PASSWORD = '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' # this is your API key
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'huellassanas2023@gmail.com' # this is the sendgrid email
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'

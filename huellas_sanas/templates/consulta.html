@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Enviar Consulta{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Enviar consulta o reclamo</h1>
+    <form method="post" action="{% url 'enviar_consulta' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="correo">Correo Electrónico:</label>
+            <input type="email" class="form-control" id="correo" name="correo" required>
+        </div>
+        <div class="form-group">
+            <label for="asunto">Asunto:</label>
+            <input type="text" class="form-control" id="asunto" name="asunto" required>
+        </div>
+        <div class="form-group">
+            <label for="mensaje">Mensaje:</label>
+            <textarea class="form-control" id="mensaje" name="mensaje" rows="5" required maxlength="500"></textarea>
+            <span id="contador-caracteres">0 / 500 caracteres</span>
+        </div>            
+        <button type="submit" class="btn btn-primary">Enviar</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Volver atrás</a>
+    </form>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const mensajeTextarea = document.getElementById("mensaje");
+    const contadorCaracteres = document.getElementById("contador-caracteres");
+
+    mensajeTextarea.addEventListener("input", function() {
+        const caracteresIngresados = mensajeTextarea.value.length;
+        const caracteresMaximos = parseInt(mensajeTextarea.getAttribute("maxlength"));
+        contadorCaracteres.textContent = caracteresIngresados + " / " + caracteresMaximos + " caracteres";
+    });
+});
+</script>
+
+{% endblock %}

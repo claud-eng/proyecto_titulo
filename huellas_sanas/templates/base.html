@@ -34,31 +34,42 @@
                             <a class="nav-link" href="#">Preguntas Frecuentes</a>
                         </li>
                         <li class="nav-item">
+                            {% if not user.is_authenticated or user.cliente %}
+                                <a class="nav-link" href="{% url 'enviar_consulta' %}">Contáctanos</a>
+                            {% endif %}
+                        </li>
+                        
+                        <li class="nav-item">
                             <a class="nav-link" href="#">Accesorios</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Servicios</a>
                         </li>
-                        
                         {% if user.is_authenticated %}
                             {% if user.cliente %}
                                 <!-- Opciones para clientes -->
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#">Revisar estado de mascota</a>
+                                    <a class="nav-link" href="{% url 'listar_mascotas' %}">Revisar estado de mi mascota</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#">Actualizar datos personales</a>
+                                    <a class="nav-link" href="{% url 'listar_fichas' %}">Visualizar ficha médica</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link agendar-hora" href="#">Agendar hora</a> <!-- Aplicamos la clase CSS aquí -->
+                                    <a class="nav-link" href="{% url 'actualizar_datos_personales_cliente' %}">Actualizar datos personales</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'cambiar_contraseña_cliente' %}">Cambiar contraseña</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link agendar-hora" href="{% url 'listar_citas' %}">Agendar Cita</a> 
                                 </li>
                             {% elif user.empleado %}
                             {% if user.empleado.rol == 'Administrador' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Revisar estado de mascota</a>
+                                <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Inventario</a>
+                                <a class="nav-link" href="{% url 'gestionar_inventario' %}">Gestionar Inventario</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#">Visualizar reportes</a>
@@ -68,24 +79,27 @@
                             </li>
                         {% elif user.empleado.rol == 'Veterinario' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Gestionar estado de mascota</a>
+                                <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Generar ficha</a>
+                                <a class="nav-link" href="{% url 'listar_fichas' %}">Gestionar ficha médica</a>
                             </li>
                                 {% elif user.empleado.rol == 'Recepcionista' %}
                                     <!-- Opciones para Recepcionista -->
                                     <li class="nav-item">
-                                        <a class="nav-link" href="#">Revisar estado de mascota</a>
+                                        <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" href="#">Gestionar citas</a>
+                                        <a class="nav-link" href="{% url 'gestionar_inventario' %}">Visualizar Inventario</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'listar_citas' %}">Gestionar citas</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="#">Gestionar Ventas</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link agendar-hora" href="#">Agendar hora</a> <!-- Aplicamos la clase CSS aquí -->
+                                        <a class="nav-link" href="{% url 'listar_clientes' %}">Gestionar clientes</a>
                                     </li>
                                 {% endif %}
                             {% endif %}
@@ -95,10 +109,21 @@
                             <li class="nav-item">
                                 <p class="nav-link welcome-message"><strong>Bienvenido/a:</strong> <br> <span class="username">{{ user.first_name }} {{ user.last_name }}</span></p>
                             </li>
+                            {% if user.is_authenticated %}
+                            {% if user.cliente %}
+                                <li class="nav-item">
+                                    <p class="nav-link"><strong class="rol-label">Rol:</strong> <span class="rol-value cliente-rol">Cliente</span></p>
+                                </li>
+                            {% elif user.empleado %}
+                                <li class="nav-item">
+                                    <p class="nav-link"><strong class="rol-label">Rol:</strong> <span class="rol-value empleado-rol">{{ user.empleado.rol }}</span></p>
+                                </li>
+                            {% endif %}
+                        {% endif %}
                         {% else %}
                             <!-- La opción "Agendar hora" se muestra para usuarios no autenticados -->
                             <li class="nav-item">
-                                <a class="nav-link agendar-hora" href="#">Agendar hora</a> <!-- Aplicamos la clase CSS aquí -->
+                                <a class="nav-link agendar-hora" href="{% url 'agendar_cita_sin_login' %}">Agendar Cita</a> <!-- Aplicamos la clase CSS aquí -->
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
@@ -121,14 +146,16 @@
             <div class="row">
                 <div class="col-md-6 d-flex align-items-center">
                     <div>
-                        <h3>Información de Contacto</h3>
-                        <p>Tu dirección y datos de contacto aquí.</p>
+                        <h3>Av. Las Condes 666</h3>
+                        <p>© 2022-2023 - Huellas Sanas S.A. - Todos los derechos reservados</p>
                     </div>
                 </div>
                 <div class="col-md-6 d-flex align-items-center">
                     <div>
-                        <h3>Redes Sociales</h3>
-                        <p>Enlaces a tus redes sociales aquí.</p>
+                        <h3>¡Síguenos!</h3>
+                        <!-- Agrega los logros de Twitter e Instagram con un tamaño específico -->
+                        <a href="https://twitter.com/huellassanas_sa/" target="_blank"><img src="{% static 'images/img/twitter_logo.png' %}" alt="Twitter" width="40" height="40" class="mr-3"></a>
+                        <a href="https://www.instagram.com/huellassanas_sa/" target="_blank"><img src="{% static 'images/img/instagram_logo.png' %}" alt="Instagram" width="40" height="40"></a>
                     </div>
                 </div>
             </div>

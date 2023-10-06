@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gestionar Inventario{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>
+                {% if user.empleado.rol == 'Administrador' %}
+                    Administración de productos
+                {% elif user.empleado.rol == 'Recepcionista' %}
+                    Visualización de productos
+                {% endif %}
+            </h2>
+            <p>
+                {% if user.empleado.rol == 'Administrador' %}
+                    Aquí puedes gestionar el inventario de productos.
+                {% elif user.empleado.rol == 'Recepcionista' %}
+                    Aquí puedes ver el inventario de productos.
+                {% endif %}
+            </p>
+            <a href="{% url 'listar_productos' %}" class="btn btn-primary">
+                {% if user.empleado.rol == 'Administrador' %}
+                    Gestionar productos
+                {% elif user.empleado.rol == 'Recepcionista' %}
+                    Visualizar productos
+                {% endif %}
+            </a>
+            <img class="img-fluid mt-5" src="{% static 'images/img/producto.png' %}" alt="Producto" style="width: 400px; height: 400px;">
+        </div>
+        <div class="col-md-6">
+            <h2>
+                {% if user.empleado.rol == 'Administrador' %}
+                    Administración de servicios
+                {% elif user.empleado.rol == 'Recepcionista' %}
+                    Visualización de servicios
+                {% endif %}
+            </h2>
+            <p>
+                {% if user.empleado.rol == 'Administrador' %}
+                    Aquí puedes gestionar la lista de servicios.
+                {% elif user.empleado.rol == 'Recepcionista' %}
+                    Aquí puedes ver la lista de servicios.
+                {% endif %}
+            </p>
+            <a href="{% url 'listar_servicios' %}" class="btn btn-primary">
+                {% if user.empleado.rol == 'Administrador' %}
+                    Gestionar servicios
+                {% elif user.empleado.rol == 'Recepcionista' %}
+                    Visualizar servicios
+                {% endif %}
+            </a>
+            <img class="img-fluid mt-5" src="{% static 'images/img/servicio.png' %}" alt="Servicio" style="width: 400px; height: 400px;">
+        </div>
+    </div>
+</div>
+{% endblock %}

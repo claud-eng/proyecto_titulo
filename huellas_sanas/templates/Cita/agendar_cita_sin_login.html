@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Debes iniciar sesión{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h2>Inicia sesión para agendar hora</h2>
+            <p>Para agendar una cita con nuestro centro médico, necesitas iniciar sesión con tu cuenta.</p>
+            <p>Si aún no tienes una cuenta, puedes <a href="{% url 'agregar_cliente' %}">registrarte aquí</a>.</p>            
+            <p>¿Ya tienes una cuenta? <a href="{% url 'login' %}">Iniciar Sesión</a>.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

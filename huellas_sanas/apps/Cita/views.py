@@ -52,11 +52,14 @@ def agendar_cita(request):
         form = CitaForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Cita agregada con éxito.')  # Agrega mensaje de éxito
+            messages.success(request, 'Cita agendada con éxito.')  # Agrega mensaje de éxito
             return redirect('listar_citas')  # Redirige a la lista de citas después de agregar una nueva
     else:
         form = CitaForm()
     return render(request, "Cita/agendar_cita.html", {'form': form})
+
+def agendar_cita_sin_login(request):
+    return render(request, 'Cita/agendar_cita_sin_login.html')
 
 def confirmar_borrar_cita(request, cita_id):
     # Vista para confirmar la eliminación de una cita
@@ -76,6 +79,18 @@ def borrar_cita(request, cita_id):
 
     return redirect('listar_citas')  # Redirige a la lista de citas después de borrar
 
+def confirmar_cancelar_cita(request, cita_id):
+    cita = get_object_or_404(Cita, id=cita_id)
+
+    if request.method == "POST":
+        # Cambiar el estado de la cita a "Cancelada"
+        cita.estado = 'Cancelada'
+        cita.save()
+        messages.success(request, 'Cita cancelada con éxito.')  # Agrega mensaje de éxito
+        return redirect('listar_citas')  # Redirige a la lista de citas después de cancelar la cita
+
+    return render(request, 'Cita/confirmar_cancelar_cita.html', {'cita': cita})
+
 def editar_cita(request, cita_id):
     # Vista para editar la información de una cita existente
 
@@ -85,15 +100,17 @@ def editar_cita(request, cita_id):
         form = EditarCitaForm(request.POST, instance=instancia)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Cita editada con éxito.')  # Agrega mensaje de éxito
-            return redirect('listar_citas')  # Redirige a la lista de citas después de editar
+            messages.success(request, 'Cita editada con éxito.')
+            return redirect('listar_citas')
     else:
-        form = EditarCitaForm(instance=instancia)
-    return render(request, "Cita/editar_cita.html", {'form': form})
+        # Obtener los valores actuales de fecha y hora y convertirlos a cadenas
+        fecha_actual = instancia.fecha.strftime('%Y-%m-%d')
+        hora_actual = instancia.hora.strftime('%H:%M')
 
-def gestionar_citas(request):
-    # Aquí puedes agregar la lógica para gestionar las citas de los usuarios
-    return render(request, 'Cita/gestionar_citas.html')
+        # Pasar los valores actuales como valores iniciales al formulario
+        form = EditarCitaForm(instance=instancia, initial={'fecha': fecha_actual, 'hora': hora_actual})
+
+    return render(request, "Cita/editar_cita.html", {'form': form})
 
 def listar_mascotas(request):
     # Vista para listar mascotas con opciones de búsqueda y paginación
@@ -165,12 +182,9 @@ def editar_mascota(request, mascota_id):
         form = EditarMascotaForm(request.POST, instance=mascota)
         if form.is_valid():
             form.save()
-            return redirect('gestionar_mascotas')
+            messages.success(request, 'Mascota editada con éxito.')
+            return redirect('listar_mascotas')
     else:
         form = EditarMascotaForm(instance=mascota)
     
     return render(request, 'Cita/editar_mascota.html', {'form': form, 'mascota': mascota})
-
-def gestionar_mascotas(request):
-    mascotas = Mascota.objects.all()
-    return render(request, "Cita/gestionar_mascotas.html", {'mascotas': mascotas})

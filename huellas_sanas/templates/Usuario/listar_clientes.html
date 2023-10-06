@@ -33,7 +33,7 @@
         <button type="submit" class="btn btn-primary">Buscar</button>
     </form>
 
-    <table class="table">
+    <table class="table table-responsive">
         <thead>
             <tr>
                 <th>Id</th>
@@ -68,27 +68,45 @@
         </tbody>
     </table>
     
-    <!-- Mostrar la página actual del total de páginas con espacio inferior -->
-    <span class="current-page ml-2 mb-2">Página {{ clientes.number }} de {{ clientes.paginator.num_pages }}</span>
+    <nav aria-label="Paginación">
+        <ul class="pagination">
+          {% if clientes.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1">Primera</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ clientes.previous_page_number }}">Anterior</a>
+            </li>
+          {% endif %}
+      
+          {% for i in clientes.paginator.page_range %}
+            <li class="page-item{% if i == clientes.number %} active{% endif %}">
+              <a class="page-link" href="?page={{ i }}">{{ i }}{% if i == clientes.number %} <span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+          {% endfor %}
+      
+          {% if clientes.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ clientes.next_page_number }}">Siguiente</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ clientes.paginator.num_pages }}">Última</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+          <!-- "Volver atrás" con la clase btn btn-secondary -->
+          {% if has_search_query_username or has_search_query_rut %}
 
-    <div class="pagination mt-2"> <!-- Agrega espacio superior -->
-        {% if clientes.has_previous %}
-            <a class="btn btn-secondary ml-2" href="?page=1">Primera</a>
-            <a class="btn btn-primary ml-2" href="?page={{ clientes.previous_page_number }}">Anterior</a>
-        {% endif %}
+        <a href="{% url 'listar_clientes' %}"><button class="btn btn-secondary">Volver atrás</button></a>
 
-        {% if clientes.has_next %}
-            <a class="btn btn-primary ml-2" href="?page={{ clientes.next_page_number }}">Siguiente</a>
-            <a class="btn btn-secondary ml-2" href="?page={{ clientes.paginator.num_pages }}">Última</a>
-        {% endif %}
+          {% endif %}
+          
+          <!-- "Volver al menú principal" con la clase btn btn-danger ml-2 -->
+          {% if user.is_authenticated and user.empleado and user.empleado.rol == 'Administrador' %}
 
-        {% if has_search_query_username or has_search_query_rut %}
-            <a href="{% url 'listar_clientes' %}" class="btn btn-secondary">Volver atrás</a>
-        {% endif %}
-        <!-- Mostrar el botón "Volver atrás" solo si el usuario es un empleado con rol de administrador -->
-        {% if user.is_authenticated and user.empleado and user.empleado.rol == 'Administrador' %}
-            <a href="{% url 'gestionar_cuentas' %}" class="btn btn-danger ml-2">Volver al menú principal</a>
-        {% endif %}
-    </div>
+        <a href="{% url 'gestionar_cuentas' %}"><button class="btn btn-danger">Volver al menú principal</button></a>
+
+          {% endif %}
 </div>
 {% endblock %}

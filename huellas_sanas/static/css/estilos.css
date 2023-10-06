@@ -7,11 +7,52 @@
         padding: 5px 10px; /* Añade espaciado alrededor del mensaje para hacerlo más destacado */
     }
     
-    .username {
-        color: #7da467; /* Cambia el color del nombre de usuario a rojo */
-        font-weight: normal; /* Establece el peso de la fuente a normal (no negrita) */
+    /* Estilo para el cuerpo de la página */
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh; /* Al menos el 100% del alto de la ventana del navegador */
+        margin: 0;
+    }
+
+    /* Estilo para el contenido principal */
+    main {
+        flex-grow: 1; /* Hace que el contenido principal ocupe todo el espacio disponible */
+    }
+
+    /* Estilo para el footer */
+    footer {
+        flex-shrink: 0; /* Evita que el footer se reduzca cuando el contenido es grande */
     }
     
+    .username {
+        color: #7da467; /* Cambia el color del nombre de usuario a verde */
+        font-weight: normal; /* Establece el peso de la fuente a normal (no negrita) */
+    }
+
+    /* Estilo para el elemento "Rol" */
+    .rol-label {
+        font-weight: bold;
+    }
+
+    /* Estilo para el valor del rol del cliente */
+    .cliente-rol {
+     color: red;
+
+    }
+
+    /* Estilo para el valor del rol del empleado */
+    .empleado-rol {
+     color: red;
+
+    }
+
     .agendar-hora {
         font-weight: bold;
     }
+
+    .custom-button {
+        display: inline-block; /* Hace que los botones se muestren en la misma línea */
+        margin-right: 10px; /* Ajusta el margen derecho para separar los botones */
+    }
+

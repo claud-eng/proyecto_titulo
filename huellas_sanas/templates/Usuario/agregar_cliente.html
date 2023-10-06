@@ -15,7 +15,7 @@
 {% block content %}
     <div class="container mt-5">
         {% if user.is_authenticated %}
-            {% if user.empleado and user.empleado.rol == 'Administrador' %}
+            {% if user.empleado and user.empleado.rol == 'Administrador' or user.empleado.rol == 'Recepcionista' %}
                 <h2>Agregar cliente</h2>
             {% else %}
                 <h2>Registrarse</h2>
@@ -30,7 +30,7 @@
             
             <!-- Si el usuario está logeado como empleado aparece el botón de agregar, en caso contrario Registrarse -->
             <button type="submit" class="btn btn-primary">
-                {% if user.is_authenticated and user.empleado and user.empleado.rol == 'Administrador' %}
+                {% if user.is_authenticated and user.empleado and user.empleado.rol == 'Administrador' or user.empleado.rol == 'Recepcionista' %}
                     Agregar
                 {% else %}
                     Registrarse
@@ -39,7 +39,7 @@
             <!-- Botón para mostrar/ocultar contraseña -->
             <button type="button" id="toggle-password" class="btn btn-info">Mostrar Contraseña</button>
             {% if user.is_authenticated %}
-                {% if user.empleado and user.empleado.rol == 'Administrador' %}
+                {% if user.empleado and user.empleado.rol == 'Administrador' or user.empleado.rol == 'Recepcionista' %}
                     <a href="{% url 'listar_clientes' %}" class="btn btn-secondary">Volver atrás</a>
                 {% else %}
                     <a href="{% url 'login' %}" class="btn btn-secondary">Volver atrás</a>

@@ -29,42 +29,31 @@ class EditarCitaForm(forms.ModelForm):
             'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'hora': forms.Select(choices=HORARIO_CHOICES, attrs={'class': 'form-control'}),
             'motivo': forms.Select(attrs={'class': 'form-control'}),
-            'estado': forms.Select(choices=Cita.ESTADO_CHOICES, attrs={'class': 'form-control'}),
         }
 
 class MascotaForm(forms.ModelForm):
     class Meta:
         model = Mascota
-        fields = ['cliente', 'nombre', 'especie', 'raza']
+        fields = ['cliente', 'nombre', 'especie', 'raza', 'estado']
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-control'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'especie': forms.Select(attrs={'class': 'form-control'}),
-            'raza': forms.Select(attrs={'class': 'form-control'}),
+            'especie': forms.Select(attrs={'class': 'form-control', 'id': 'id_especie'}),
+            'raza': forms.Select(attrs={'class': 'form-control', 'id': 'id_raza'}),  # Cambiar a Select
+            'estado': forms.Select(attrs={'class': 'form-control'}),
         }
-
-def __init__(self, *args, **kwargs):
-    super(MascotaForm, self).__init__(*args, **kwargs)
-    
-    # Obtener las opciones de raza según la especie seleccionada
-    especie = self.initial.get('especie')  # Obtener el valor inicial de 'especie'
-
-    if especie:
-        razas_choices = dict(self.fields['especie'].choices)  # Obtener las opciones de raza desde el formulario
-        razas = razas_choices.get(especie, [])  # Obtener las razas para la especie seleccionada
-        self.fields['raza'].choices = razas
-    else:
-        # Si no se ha seleccionado una especie, dejar las opciones de raza vacías
-        self.fields['raza'].choices = []
 
 class EditarMascotaForm(forms.ModelForm):
     class Meta:
         model = Mascota
-        fields = ['cliente', 'nombre', 'especie', 'raza']
+        fields = ['cliente', 'nombre', 'especie', 'raza', 'estado']
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-control'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'especie': forms.TextInput(attrs={'class': 'form-control'}),
-            'raza': forms.TextInput(attrs={'class': 'form-control'}),
+            'especie': forms.Select(attrs={'class': 'form-control', 'id': 'id_especie'}),
+            'raza': forms.Select(attrs={'class': 'form-control', 'id': 'id_raza'}),  
+            'estado': forms.Select(attrs={'class': 'form-control'}),
         }
+
+
 

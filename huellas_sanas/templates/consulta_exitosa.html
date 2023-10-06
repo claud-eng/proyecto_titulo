@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Consulta Enviada con Éxito{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Consulta enviada con éxito</h1>
+    <p>Gracias por enviarnos tu consulta. Hemos recibido tu mensaje y te responderemos a la brevedad posible.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">Volver a la página de inicio</a>
+</div>
+{% endblock %}
