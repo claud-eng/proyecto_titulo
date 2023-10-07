@@ -50,15 +50,28 @@ def listar_clientes(request):
         'has_search_query_rut': has_search_query_rut,
     })
 
-def agregar_cliente(request):
-    # Vista para agregar un nuevo cliente desde un formulario
+from django.contrib.auth.models import User  # Importa el modelo User
 
+def agregar_cliente(request):
     if request.method == "POST":
         form = ClienteForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Cliente agregado con éxito.')  # Agrega mensaje de éxito
-            return redirect('listar_clientes')  # Redirige a la lista de clientes después de agregar uno nuevo
+            # Guarda el formulario y obtiene el cliente
+            cliente = form.save()
+
+            # Actualiza el campo 'email' en el modelo User
+            user = User.objects.get(username=form.cleaned_data['username'])
+            user.email = form.cleaned_data['username']
+            user.save()
+
+            if request.user.is_authenticated and request.user.empleado and (request.user.empleado.rol == 'Administrador' or request.user.empleado.rol == 'Recepcionista'):
+                # Si el usuario es un empleado, muestra el mensaje de éxito para el cliente agregado
+                messages.success(request, 'Cliente agregado con éxito.')
+                return redirect('listar_clientes')
+            else:
+                # Si el usuario no está autenticado, muestra el mensaje de éxito para el registro
+                messages.success(request, 'Se ha registrado exitosamente. Puede iniciar sesión ahora.')
+                return redirect('login')
     else:
         form = ClienteForm()
     return render(request, "Usuario/agregar_cliente.html", {'form': form})
@@ -186,12 +199,16 @@ def listar_empleados(request):
     })
 
 def agregar_empleado(request):
-    # Vista para agregar un nuevo empleado desde un formulario
-
     if request.method == "POST":
         form = EmpleadoForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Guarda el formulario y obtiene el empleado
+            empleado = form.save()
+
+            # Actualiza el campo 'email' en el modelo User
+            user = User.objects.get(username=form.cleaned_data['username'])
+            user.email = form.cleaned_data['username']
+            user.save()
             messages.success(request, 'Empleado agregado con éxito.')  # Agrega mensaje de éxito
             return redirect('listar_empleados')  # Redirige a la lista de empleados después de agregar uno nuevo
     else:

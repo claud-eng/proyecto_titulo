@@ -9,7 +9,13 @@ Iniciar sesión
     <div class="row">
         <!-- Parte izquierda con opciones mejoradas -->
         <div class="col-md-6">
-            <h1 class="display">Iniciar sesión</h1><br>
+            {% if messages %}
+            <div class="alert alert-success">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+            {% endif %}
             <form method="POST" id="formulario">
                 {% csrf_token %}
 
@@ -36,8 +42,13 @@ Iniciar sesión
                 <div class="form-group">
                     <input class="btn btn-primary" type="submit" value="Iniciar sesión"/>
                 </div>
-            </form>
-        </div>
+
+                <!-- Enlace para restablecer contraseña -->
+                <div class="form-group">
+                    <p><a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a></p>
+                </div>
+                    </form>
+                </div>
 
         <!-- Parte derecha con la opción de Registrarse -->
         <div class="col-md-6">

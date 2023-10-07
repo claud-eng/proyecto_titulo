@@ -22,6 +22,13 @@ from django.contrib.auth.forms import UserChangeForm
 
 from django.contrib.auth.forms import PasswordChangeForm
 
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import (UserCreationForm,
+                                       AuthenticationForm,
+                                       PasswordResetForm,
+                                       SetPasswordForm
+                                       )
+
 def validate_username(value):
     """
     Valida que 'value' sea un correo electrónico con el dominio @huellassanas.cl.
@@ -132,6 +139,7 @@ class ClienteForm(forms.ModelForm):
     def save(self, commit=True):
         # Crear o actualizar el usuario (auth_user)
         user, created = User.objects.get_or_create(username=self.cleaned_data['username'])
+        user.email = self.cleaned_data['username']  # Actualiza el campo email con el valor del username
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
 
@@ -498,3 +506,33 @@ class EditarEmpleadoForm(forms.ModelForm):
             empleado.save()
 
         return empleado
+
+class ResetPasswordForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super(ResetPasswordForm, self).__init__(*args, **kwargs)
+
+    email = forms.EmailField(
+        max_length=150,
+        required=True,
+        label='Usuario (Correo Electrónico)',
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'usuario@gmail.com'}),
+    )
+
+class NewPasswordForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super(NewPasswordForm, self).__init__(*args, **kwargs)
+
+    new_password1 = forms.CharField(
+        max_length=128,
+        required=True,
+        label='Nueva Contraseña',
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'type': 'password', 'autocomplete': 'new-password'}),
+    )
+
+    new_password2 = forms.CharField(
+        max_length=128,
+        required=True,
+        label='Confirmar Nueva Contraseña',
+        strip=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'type': 'password', 'autocomplete': 'new-password'}),
+    )
