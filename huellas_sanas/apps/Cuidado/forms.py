@@ -15,6 +15,21 @@ class FichaForm(forms.ModelForm):
             'instrucciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        medicamento = cleaned_data.get('medicamento')
+        dosis = cleaned_data.get('dosis')
+        instrucciones = cleaned_data.get('instrucciones')
+
+        if medicamento:
+            cleaned_data['medicamento'] = medicamento.capitalize()
+        if dosis:
+            cleaned_data['dosis'] = dosis.capitalize()
+        if instrucciones:
+            cleaned_data['instrucciones'] = instrucciones.capitalize()
+
+        return cleaned_data
+    
     def __init__(self, *args, **kwargs):
         super(FichaForm, self).__init__(*args, **kwargs)
         # Agregar una opción vacía al campo cliente

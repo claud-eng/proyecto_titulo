@@ -47,3 +47,9 @@ def enviar_consulta(request):
 
 def consulta_exitosa(request):
     return render(request, 'consulta_exitosa.html')
+
+def sobre_nosotros(request):
+    return render(request, 'sobre_nosotros.html')
+
+def preguntas_frecuentes(request):
+    return render(request, 'preguntas_frecuentes.html')

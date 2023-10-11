@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sobre Nosotros{% endblock %}
+
+{% block content %}
+<section class="container my-5">
+    <h2>Preguntas Frecuentes</h2>
+    <div class="accordion" id="faqAccordion">
+        <!-- Pregunta 1 -->
+        <div class="card">
+            <div class="card-header" id="faqHeading1">
+                <h2 class="mb-0">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#faqCollapse1" aria-expanded="true" aria-controls="faqCollapse1">
+                        ¿Cuáles son los servicios que ofrece el Centro de Cuidado Huellas Sanas?
+                    </button>
+                </h2>
+            </div>
+            <div id="faqCollapse1" class="collapse show" aria-labelledby="faqHeading1" data-parent="#faqAccordion">
+                <div class="card-body">
+                    El Centro de Cuidado Huellas Sanas ofrece una amplia gama de servicios que incluyen consulta médica general, peluquería, servicios de vacunación, esterilización, guardería para mascotas y venta de productos relacionados con el cuidado de animales. Estamos comprometidos en brindar atención integral para perros y gatos.
+                </div>
+            </div>
+        </div>
+
+        <!-- Pregunta 2 -->
+        <div class="card">
+            <div class="card-header" id="faqHeading2">
+                <h2 class="mb-0">
+                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faqCollapse2" aria-expanded="false" aria-controls="faqCollapse2">
+                        ¿Cómo puedo ponerme en contacto con ustedes?
+                    </button>
+                </h2>
+            </div>
+            <div id="faqCollapse2" class="collapse" aria-labelledby="faqHeading2" data-parent="#faqAccordion">
+                <div class="card-body">
+                    Puedes ponerte en contacto con nosotros a través de nuestra página de contacto en línea o llamando a nuestro número telefónico. Estamos aquí para responder a tus consultas y proporcionarte la información que necesitas.
+                </div>
+            </div>
+        </div>
+
+        <!-- Pregunta 3 -->
+        <div class="card">
+            <div class="card-header" id="faqHeading3">
+                <h2 class="mb-0">
+                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faqCollapse3" aria-expanded="false" aria-controls="faqCollapse3">
+                        ¿Ofrecen servicios de venta en línea?
+                    </button>
+                </h2>
+            </div>
+            <div id="faqCollapse3" class="collapse" aria-labelledby="faqHeading3" data-parent="#faqAccordion">
+                <div class="card-body">
+                    Sí, ofrecemos servicios de venta en línea. Los clientes pueden comprar productos relacionados con el cuidado de mascotas a través de nuestra tienda en línea. Implementamos un sistema de pago seguro y generamos documentos de pago automáticamente para mayor comodidad.
+                </div>
+            </div>
+        </div>
+
+        <!-- Pregunta 4 -->
+        <div class="card">
+            <div class="card-header" id="faqHeading4">
+                <h2 class="mb-0">
+                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faqCollapse4" aria-expanded="false" aria-controls="faqCollapse4">
+                        ¿Cómo puedo obtener información sobre el estado de salud de mi mascota?
+                    </button>
+                </h2>
+            </div>
+            <div id="faqCollapse4" class="collapse" aria-labelledby="faqHeading4" data-parent="#faqAccordion">
+                <div class="card-body">
+                    Nuestra plataforma en línea permite a los clientes crear cuentas personales y consultar el estado de sus mascotas, incluyendo registros médicos y tratamientos anteriores. Esto proporciona un acceso fácil y conveniente a la información de salud de sus animales.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

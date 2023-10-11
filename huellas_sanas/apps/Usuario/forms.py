@@ -29,6 +29,8 @@ from django.contrib.auth.forms import (UserCreationForm,
                                        SetPasswordForm
                                        )
 
+from datetime import date
+
 def validate_username(value):
     """
     Valida que 'value' sea un correo electrónico con el dominio @huellassanas.cl.
@@ -125,6 +127,17 @@ class ClienteForm(forms.ModelForm):
         label='Fecha de Nacimiento',
         widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}),
     )
+
+    def clean_fecha_nacimiento(self):
+        fecha_nacimiento = self.cleaned_data.get('fecha_nacimiento')
+
+        if fecha_nacimiento:
+            edad = (date.today() - fecha_nacimiento).days // 365  # Calcula la edad en años
+            if edad < 18:
+                raise ValidationError('Debes ser mayor de 18 años para registrarte.')
+
+        return fecha_nacimiento
+    
     numero_telefono = forms.CharField(
         max_length=15,
         required=True,
@@ -140,9 +153,8 @@ class ClienteForm(forms.ModelForm):
         # Crear o actualizar el usuario (auth_user)
         user, created = User.objects.get_or_create(username=self.cleaned_data['username'])
         user.email = self.cleaned_data['username']  # Actualiza el campo email con el valor del username
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-
+        user.first_name = self.cleaned_data['first_name'].capitalize()  # Transforma la primera letra en mayúscula
+        user.last_name = self.cleaned_data['last_name'].capitalize()  # Transforma la primera letra en mayúscula
         # Hashear la contraseña antes de guardarla
         user.password = make_password(self.cleaned_data['password'])  # Hashear la contraseña
 
@@ -152,6 +164,7 @@ class ClienteForm(forms.ModelForm):
         # Crear o actualizar el cliente
         cliente = super(ClienteForm, self).save(commit=False)
         cliente.user = user
+        cliente.second_last_name = self.cleaned_data['second_last_name'].capitalize()  # Transforma la primera letra en mayúscula
 
         if commit:
             cliente.save()
@@ -224,6 +237,17 @@ class EditarClienteForm(forms.ModelForm):
         label='Fecha de Nacimiento',
         widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}),
     )
+
+    def clean_fecha_nacimiento(self):
+        fecha_nacimiento = self.cleaned_data.get('fecha_nacimiento')
+
+        if fecha_nacimiento:
+            edad = (date.today() - fecha_nacimiento).days // 365  # Calcula la edad en años
+            if edad < 18:
+                raise ValidationError('Debes ser mayor de 18 años para registrarte.')
+
+        return fecha_nacimiento
+    
     numero_telefono = forms.CharField(
         max_length=15,
         required=True,
@@ -244,11 +268,13 @@ class EditarClienteForm(forms.ModelForm):
 
         # Actualizar los campos del usuario (correo electrónico, nombre, apellido, etc.)
         user.username = self.cleaned_data['username']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
+        user.first_name = self.cleaned_data['first_name'].capitalize()  # Transforma la primera letra en mayúscula
+        user.last_name = self.cleaned_data['last_name'].capitalize()  # Transforma la primera letra en mayúscula
 
         if commit:
             user.save()  # Guardar los cambios en el usuario
+
+        cliente.second_last_name = self.cleaned_data['second_last_name'].capitalize()  # Transforma la primera letra en mayúscula
 
         if commit:
             cliente.save()  # Guardar los cambios en el cliente
@@ -263,7 +289,6 @@ class CustomClienteForm(forms.ModelForm):
         required=True,
         label='Usuario (Correo Electrónico)',
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'usuario@gmail.com'}),
-        # No incluir la validación de validate_username
     )
 
     def clean_username(self):
@@ -297,9 +322,39 @@ class CustomClienteForm(forms.ModelForm):
         rut = rut.upper()
         return rut
     second_last_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    fecha_nacimiento = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    fecha_nacimiento = forms.DateField(
+        required=True,
+        label='Fecha de Nacimiento',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}),
+    )
+
+    def clean_fecha_nacimiento(self):
+        fecha_nacimiento = self.cleaned_data.get('fecha_nacimiento')
+
+        if fecha_nacimiento:
+            edad = (date.today() - fecha_nacimiento).days // 365  # Calcula la edad en años
+            if edad < 18:
+                raise ValidationError('Debes ser mayor de 18 años para registrarte.')
+
+        return fecha_nacimiento
+    
     numero_telefono = forms.CharField(max_length=15, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
+    def clean_first_name(self):
+        # Asegurar que la primera letra sea mayúscula y el resto minúscula
+        first_name = self.cleaned_data['first_name'].capitalize()
+        return first_name
+
+    def clean_last_name(self):
+        # Asegurar que la primera letra sea mayúscula y el resto minúscula
+        last_name = self.cleaned_data['last_name'].capitalize()
+        return last_name
+
+    def clean_second_last_name(self):
+        # Asegurar que la primera letra sea mayúscula y el resto minúscula
+        second_last_name = self.cleaned_data['second_last_name'].capitalize()
+        return second_last_name
+    
     class Meta:
         model = Cliente
         fields = ['username', 'first_name', 'last_name', 'rut', 'second_last_name', 'fecha_nacimiento', 'numero_telefono']
@@ -377,6 +432,17 @@ class EmpleadoForm(forms.ModelForm):
         label='Fecha de Nacimiento',
         widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}),
     )
+
+    def clean_fecha_nacimiento(self):
+        fecha_nacimiento = self.cleaned_data.get('fecha_nacimiento')
+
+        if fecha_nacimiento:
+            edad = (date.today() - fecha_nacimiento).days // 365  # Calcula la edad en años
+            if edad < 18:
+                raise ValidationError('Debes ser mayor de 18 años para registrarte.')
+
+        return fecha_nacimiento
+    
     numero_telefono = forms.CharField(
         max_length=15,
         required=True,
@@ -399,8 +465,8 @@ class EmpleadoForm(forms.ModelForm):
     def save(self, commit=True):
         # Crear o actualizar el usuario (auth_user)
         user, created = User.objects.get_or_create(username=self.cleaned_data['username'])
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
+        user.first_name = self.cleaned_data['first_name'].capitalize()  # Transforma la primera letra en mayúscula
+        user.last_name = self.cleaned_data['last_name'].capitalize()  # Transforma la primera letra en mayúscula
 
         # Hashear la contraseña antes de guardarla
         user.password = make_password(self.cleaned_data['password'])  # Hashear la contraseña
@@ -411,7 +477,7 @@ class EmpleadoForm(forms.ModelForm):
         # Crear o actualizar el empleado
         empleado = super(EmpleadoForm, self).save(commit=False)
         empleado.user = user
-
+        empleado.second_last_name = self.cleaned_data['second_last_name'].capitalize()  # Transforma la primera letra en mayúscula
         if commit:
             empleado.save()
 
@@ -470,6 +536,17 @@ class EditarEmpleadoForm(forms.ModelForm):
         label='Fecha de Nacimiento',
         widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}),
     )
+
+    def clean_fecha_nacimiento(self):
+        fecha_nacimiento = self.cleaned_data.get('fecha_nacimiento')
+
+        if fecha_nacimiento:
+            edad = (date.today() - fecha_nacimiento).days // 365  # Calcula la edad en años
+            if edad < 18:
+                raise ValidationError('Debes ser mayor de 18 años para registrarte.')
+
+        return fecha_nacimiento
+    
     numero_telefono = forms.CharField(
         max_length=15,
         required=True,
@@ -492,8 +569,8 @@ class EditarEmpleadoForm(forms.ModelForm):
     def save(self, commit=True):
         # Crear o actualizar el usuario (auth_user)
         user, created = User.objects.get_or_create(username=self.cleaned_data['username'])
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
+        user.first_name = self.cleaned_data['first_name'].capitalize()  # Transforma la primera letra en mayúscula
+        user.last_name = self.cleaned_data['last_name'].capitalize()  # Transforma la primera letra en mayúscula
 
         if commit:
             user.save()
@@ -501,7 +578,7 @@ class EditarEmpleadoForm(forms.ModelForm):
         # Crear o actualizar el empleado
         empleado = super(EditarEmpleadoForm, self).save(commit=False)
         empleado.user = user
-
+        empleado.second_last_name = self.cleaned_data['second_last_name'].capitalize()  # Transforma la primera letra en mayúscula
         if commit:
             empleado.save()
 
