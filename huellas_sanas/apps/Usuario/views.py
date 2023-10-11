@@ -8,9 +8,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CustomClienteForm
 from .forms import CambiarContraseñaClienteForm
+from django.contrib.auth.models import User  # Importa el modelo User
 
 # Create your views here.
 
+@login_required
 def listar_clientes(request):
     # Vista para listar clientes con opciones de búsqueda y paginación
 
@@ -50,8 +52,6 @@ def listar_clientes(request):
         'has_search_query_rut': has_search_query_rut,
     })
 
-from django.contrib.auth.models import User  # Importa el modelo User
-
 def agregar_cliente(request):
     if request.method == "POST":
         form = ClienteForm(request.POST)
@@ -76,12 +76,14 @@ def agregar_cliente(request):
         form = ClienteForm()
     return render(request, "Usuario/agregar_cliente.html", {'form': form})
 
+@login_required
 def confirmar_borrar_cliente(request, cliente_id):
     # Vista para confirmar la eliminación de un cliente
 
     cliente = Cliente.objects.get(id=cliente_id)
     return render(request, 'Usuario/confirmar_borrar_cliente.html', {'cliente': cliente})
 
+@login_required
 def borrar_cliente(request, cliente_id):
     # Vista para borrar un cliente existente
 
@@ -94,6 +96,7 @@ def borrar_cliente(request, cliente_id):
 
     return redirect('listar_clientes')  # Redirige a la lista de clientes después de borrar
 
+@login_required
 def editar_cliente(request, cliente_id):
     instancia = Cliente.objects.get(id=cliente_id)
     user = instancia.user  # Obtener el usuario existente
@@ -122,6 +125,7 @@ def editar_cliente(request, cliente_id):
 
     return render(request, "Usuario/editar_cliente.html", {'form': form})
 
+@login_required
 def actualizar_datos_personales_cliente(request):
     user = request.user
     cliente = user.cliente
@@ -159,6 +163,7 @@ def cambiar_contraseña_cliente(request):
     
     return render(request, 'Usuario/cambiar_contraseña_cliente.html', {'form': form})
 
+@login_required
 def listar_empleados(request):
     # Vista para listar empleados con opciones de búsqueda y paginación
 
@@ -198,6 +203,7 @@ def listar_empleados(request):
         'has_search_query_rut': has_search_query_rut,
     })
 
+@login_required
 def agregar_empleado(request):
     if request.method == "POST":
         form = EmpleadoForm(request.POST)
@@ -215,12 +221,14 @@ def agregar_empleado(request):
         form = EmpleadoForm()
     return render(request, "Usuario/agregar_empleado.html", {'form': form})
 
+@login_required
 def confirmar_borrar_empleado(request, empleado_id):
     # Vista para confirmar la eliminación de un empleado
 
     empleado = Empleado.objects.get(id=empleado_id)
     return render(request, 'Usuario/confirmar_borrar_empleado.html', {'empleado': empleado})
 
+@login_required
 def borrar_empleado(request, empleado_id):
     # Vista para borrar un empleado existente
 
@@ -233,6 +241,7 @@ def borrar_empleado(request, empleado_id):
 
     return redirect('listar_empleados')  # Redirige a la lista de empleados después de borrar
 
+@login_required
 def editar_empleado(request, empleado_id):
     instancia = Empleado.objects.get(id=empleado_id)
     user = instancia.user  # Obtener el usuario existente
@@ -261,6 +270,7 @@ def editar_empleado(request, empleado_id):
 
     return render(request, "Usuario/editar_empleado.html", {'form': form})
 
+@login_required
 def gestionar_cuentas(request):
     # Aquí puedes agregar la lógica para gestionar cuentas de usuarios
     return render(request, 'Usuario/gestionar_cuentas.html')

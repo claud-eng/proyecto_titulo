@@ -3,7 +3,9 @@ from .models import Producto, Servicio
 from .forms import ProductoForm, ServicioForm
 from django.contrib import messages
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def listar_productos(request):
     # Vista para listar productos con opciones de búsqueda y paginación
 
@@ -36,6 +38,7 @@ def listar_productos(request):
         'has_search_query_nombre': has_search_query_nombre,
     })
 
+@login_required
 def agregar_producto(request):
     # Vista para agregar un nuevo producto desde un formulario
 
@@ -49,6 +52,7 @@ def agregar_producto(request):
         form = ProductoForm()
     return render(request, "Transaccion/agregar_producto.html", {'form': form})
 
+@login_required
 def editar_producto(request, producto_id):
     # Vista para editar la información de un producto existente
 
@@ -65,12 +69,14 @@ def editar_producto(request, producto_id):
 
     return render(request, "Transaccion/editar_producto.html", {'form': form})
 
+@login_required
 def confirmar_borrar_producto(request, producto_id):
     # Vista para confirmar la eliminación de un producto
 
     producto = Producto.objects.get(id=producto_id)
     return render(request, 'Transaccion/confirmar_borrar_producto.html', {'producto': producto})
 
+@login_required
 def borrar_producto(request, producto_id):
     # Vista para borrar un producto existente
 
@@ -83,6 +89,7 @@ def borrar_producto(request, producto_id):
 
     return redirect('listar_productos')  # Redirige a la lista de productos después de borrar uno
 
+@login_required
 def listar_servicios(request):
     # Vista para listar servicios con opciones de búsqueda y paginación
 
@@ -115,6 +122,7 @@ def listar_servicios(request):
         'has_search_query_nombre': has_search_query_nombre,
     })
 
+@login_required
 def agregar_servicio(request):
     # Vista para agregar un nuevo servicio desde un formulario
 
@@ -128,6 +136,7 @@ def agregar_servicio(request):
         form = ServicioForm()
     return render(request, "Transaccion/agregar_servicio.html", {'form': form})
 
+@login_required
 def editar_servicio(request, servicio_id):
     # Vista para editar la información de un servicio existente
 
@@ -144,12 +153,14 @@ def editar_servicio(request, servicio_id):
 
     return render(request, "Transaccion/editar_servicio.html", {'form': form})
 
+@login_required
 def confirmar_borrar_servicio(request, servicio_id):
     # Vista para confirmar la eliminación de un servicio
 
     servicio = Servicio.objects.get(id=servicio_id)
     return render(request, 'Transaccion/confirmar_borrar_servicio.html', {'servicio': servicio})
 
+@login_required
 def borrar_servicio(request, servicio_id):
     # Vista para borrar un servicio existente
 
@@ -162,6 +173,7 @@ def borrar_servicio(request, servicio_id):
 
     return redirect('listar_servicios')  # Redirige a la lista de servicios después de borrar uno
 
+@login_required
 def gestionar_inventario(request):
     # Aquí puedes agregar la lógica para gestionar el inventario
     return render(request, 'Transaccion/gestionar_inventario.html')

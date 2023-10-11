@@ -33,6 +33,8 @@ urlpatterns = [
     path('transaccion/', include('apps.Transaccion.urls')),
     path('enviar_consulta/', views.enviar_consulta, name='enviar_consulta'),
     path('consulta_exitosa/', views.consulta_exitosa, name='consulta_exitosa'),
+    path('sobre_nosotros/', views.sobre_nosotros, name='sobre_nosotros'),
+    path('preguntas_frecuentes/', views.preguntas_frecuentes, name='preguntas_frecuentes'),
     path('login/', auth_views.LoginView.as_view(template_name='Usuario/login.html'), name='login'),
  # Login and Logout
     path('login/', LoginView.as_view(redirect_authenticated_user=True,template_name='Usuario/login.html'), name='login'),
