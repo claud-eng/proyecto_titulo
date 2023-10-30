@@ -15,19 +15,29 @@
             </ol>
             <div class="carousel-inner" role="listbox">
                 <div class="carousel-item active">
+                    <a href="{% url 'catalogo_servicios' %}#servicio1"> <!-- Enlace a "Servicio 1" en catalogo_servicios.html -->
                     <img class="d-block img-fluid" src="{% static 'images/img/Consulta medica general.jpg' %}" alt="First slide">
+                    </a>
                 </div>
                 <div class="carousel-item">
+                    <a href="{% url 'catalogo_servicios' %}#servicio2"> <!-- Enlace a "Servicio 1" en catalogo_servicios.html -->
                     <img class="d-block img-fluid" src="{% static 'images/img/Esterilizacion.jpg' %}" alt="Second slide">
+                    </a>
                 </div>
                 <div class="carousel-item">
+                    <a href="{% url 'catalogo_servicios' %}#servicio3"> <!-- Enlace a "Servicio 1" en catalogo_servicios.html -->
                     <img class="d-block img-fluid" src="{% static 'images/img/Guarderia.jpg' %}" alt="Third slide">
+                    </a>
                 </div>
                 <div class="carousel-item">
+                    <a href="{% url 'catalogo_servicios' %}#servicio4"> <!-- Enlace a "Servicio 1" en catalogo_servicios.html -->
                     <img class="d-block img-fluid" src="{% static 'images/img/Peluqueria.jpg' %}" alt="Fourth slide">
+                    </a>
                 </div>
                 <div class="carousel-item">
+                    <a href="{% url 'catalogo_servicios' %}#servicio5"> <!-- Enlace a "Servicio 1" en catalogo_servicios.html -->
                     <img class="d-block img-fluid" src="{% static 'images/img/Vacunacion.jpg' %}" alt="Fifth slide">
+                    </a>
                 </div>
             </div>
             <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
@@ -40,62 +50,108 @@
             </a>
         </div>
         
-        <div class="text-center mt-4"> <!-- Espacio entre carrusel y mensaje, y texto centrado -->
+        <div class="text-center mt-4">
             <h1>Bienvenido al Centro de Cuidado Huellas Sanas</h1>
-            <p>Ofrecemos una amplia gama de servicios para cuidar de tus mascotas.</p>
+            <h4>Ofrecemos una amplia gama de servicios para cuidar de tus mascotas.</h4>
+        </div>
+        
+        <div class="text-center mt-4">
+            <h2>Servicios y Productos Destacados</h2>
         </div>
 
-        <!-- Dividir la página en 2 filas y 2 columnas -->
         <div class="row mt-4">
-            <!-- Primer bloque -->
-            <div class="col-md-6">
-                <div class="row">
-                    <div class="col-md-6">
-                        <img class="img-fluid" src="{% static 'images/img/Ejemplo.png' %}" alt="Imagen 1">
-                    </div>
-                    <div class="col-md-6">
-                        <p>Texto relacionado con la primera imagen.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Segundo bloque -->
-            <div class="col-md-6">
-                <div class="row">
-                    <div class="col-md-6">
-                        <img class="img-fluid" src="{% static 'images/img/Ejemplo.png' %}" alt="Imagen 2">
-                    </div>
-                    <div class="col-md-6">
-                        <p>Texto relacionado con la segunda imagen.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tercer bloque -->
+
             <div class="col-md-6 mt-4">
                 <div class="row">
                     <div class="col-md-6">
-                        <img class="img-fluid" src="{% static 'images/img/Ejemplo.png' %}" alt="Imagen 3">
+                        <a href="{% url 'catalogo_servicios' %}#servicio1">
+                            <div class="border" style="padding: 10px;">
+                                <img class="img-fluid" src="{% static 'images/img/Servicio_cmg.jpg' %}" alt="Imagen 1" style="width: 250px; height: 250px;">
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-6">
-                        <p>Texto relacionado con la tercera imagen.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Cuarto bloque -->
-            <div class="col-md-6 mt-4">
-                <div class="row">
-                    <div class="col-md-6">
-                        <img class="img-fluid" src="{% static 'images/img/Ejemplo.png' %}" alt="Imagen 4">
-                    </div>
-                    <div class="col-md-6">
-                        <p>Texto relacionado con la cuarta imagen.</p>
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                Consulta médica general
+                            </h5>
+                        <p class="card-text">
+                            Precio: $10.000 
+                        </p>
+                        <a href="{% url 'catalogo_servicios' %}#servicio1" class="btn btn-primary">Ver detalles</a>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+        <div class="col-md-6 mt-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <a href="{% url 'catalogo_servicios' %}#servicio3">
+                        <div class="border" style="padding: 10px;">
+                            <img class="img-fluid" src="{% static 'images/img/Servicio_guarderia.jpg' %}" alt="Imagen 2" style="width: 250px; height: 250px;">
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            Guardería
+                        </h5>
+                        <p class="card-text">
+                            Precio: $10.000
+                        </p>
+                        <a href="{% url 'catalogo_servicios' %}#servicio3" class="btn btn-primary">Ver detalles</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'ver_detalles_producto' 4 %}">
+                            <div class="border" style="padding: 10px;">
+                                <img class="img-fluid" src="{% static 'images/productos/7965.png.webp' %}" alt="Imagen 3" style="width: 250px; height: 250px;">
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                Proplan live clear felino 3 kg
+                            </h5>
+                            <p class="card-text">
+                                Precio: $33.990
+                            </p>
+                            <a href="{% url 'ver_detalles_producto' 4 %}" class="btn btn-primary">Ver detalles</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'ver_detalles_producto' 23 %}">
+                            <div class="border" style="padding: 10px;">
+                                <img class="img-fluid" src="{% static 'images/productos/5202-600x600.jpg.webp' %}" alt="Imagen 4" style="width: 250px; height: 250px;">
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                Royal canin maltes adulto 1 kg
+                            </h5>
+                            <p class="card-text">
+                                Precio: $10.990
+                            </p>
+                            <a href="{% url 'ver_detalles_producto' 23 %}" class="btn btn-primary">Ver detalles</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
+    </div>
 {% endblock %}
 

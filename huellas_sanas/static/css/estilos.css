@@ -56,3 +56,6 @@
         margin-right: 10px; /* Ajusta el margen derecho para separar los botones */
     }
 
+    .estado-column {
+        width: 180px; /* Establece un ancho fijo para la columna "Estado" */
+    }

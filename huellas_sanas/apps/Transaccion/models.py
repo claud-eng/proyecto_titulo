@@ -10,9 +10,11 @@ from apps.Usuario.models import Cliente, Empleado  # Importa las clases Cliente 
 class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     marca = models.CharField(max_length=100)
+    categoria = models.CharField(max_length=100, null=True)
     descripcion = models.TextField()
     precio = models.PositiveIntegerField() 
     cantidad_stock = models.PositiveIntegerField()
+    imagen = models.ImageField(upload_to='productos/', null=True, blank=True)
 
     def __str__(self):
         return self.nombre

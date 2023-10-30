@@ -281,6 +281,8 @@ def editar_mascota(request, mascota_id):
             form.save()
             messages.success(request, 'Mascota editada con éxito.')
             return redirect('listar_mascotas')
+        else:
+            print(form.errors)  # Agrega esta línea para ver errores en el formulario
     else:
         form = EditarMascotaForm(instance=mascota)
     

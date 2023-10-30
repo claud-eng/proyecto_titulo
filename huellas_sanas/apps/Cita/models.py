@@ -27,7 +27,7 @@ class Mascota(models.Model):
     nombre = models.CharField(max_length=100)
     especie = models.CharField(max_length=50, choices=ESPECIES_CHOICES)
     raza = models.CharField(max_length=50)  
-    estado = models.CharField(max_length=50, choices=ESTADO_MASCOTA_CHOICES, default='Sin atender')
+    estado = models.CharField(max_length=50, choices=ESTADO_MASCOTA_CHOICES, default='Sin atender', blank=True)
 
     def __str__(self):
         return self.nombre
