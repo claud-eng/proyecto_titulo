@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
   <h1>Agregar Producto</h1>
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     
     <div class="form-group">
@@ -16,6 +16,11 @@
     <div class="form-group">
       <label for="{{ form.marca.id_for_label }}">Marca</label>
       <input type="text" class="form-control" id="{{ form.marca.id_for_label }}" name="{{ form.marca.name }}" value="{{ form.marca.value|default:'' }}">
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.marca.id_for_label }}">Categoría</label>
+      <input type="text" class="form-control" id="{{ form.categoria.id_for_label }}" name="{{ form.categoria.name }}" value="{{ form.categoria.value|default:'' }}">
     </div>
 
     <div class="form-group">
@@ -32,7 +37,12 @@
       <label for="{{ form.cantidad_stock.id_for_label }}">Cantidad en Stock</label>
       <input type="number" class="form-control" id="{{ form.cantidad_stock.id_for_label }}" name="{{ form.cantidad_stock.name }}" value="{{ form.cantidad_stock.value|default:'' }}">
     </div>
-
+    
+    <div class="form-group">
+      <label for="{{ form.imagen.id_for_label }}">Imagen</label>
+      <input type="file" class="form-control" id="{{ form.imagen.id_for_label }}" name="{{ form.imagen.name }}">
+    </div>
+  
     <button type="submit" class="btn btn-primary">Agregar Producto</button>
     <a href="{% url 'listar_productos' %}" class="btn btn-secondary">Volver atrás</a>
   </form>
