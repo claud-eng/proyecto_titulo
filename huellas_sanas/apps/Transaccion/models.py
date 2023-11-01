@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from apps.Usuario.models import Cliente, Empleado  # Importa las clases Cliente y Empleado
+from django.contrib.contenttypes.fields import GenericRelation  # Asegúrate de importar esto al comienzo del archivo
 
 # Create your models here.
 
@@ -35,18 +36,22 @@ class Carrito(models.Model):
     object_id = models.PositiveIntegerField()
     item = GenericForeignKey('content_type', 'object_id')
     cantidad = models.PositiveIntegerField()
+    carrito = models.PositiveIntegerField(default=1)  # Agrega este campo para identificar carritos
 
     def __str__(self):
-        return f'{self.cliente.username} - {self.item.nombre}'
+        return f'{self.cliente.username} - {self.item}'
 
-class Venta(models.Model):
+    def obtener_precio_total(self):
+        return self.item.precio * self.cantidad
+
+class ContenidoCarrito(models.Model):
+    carrito = GenericRelation('Carrito')  # Agrega este campo para la relación inversa
+
+class OrdenDeCompra(models.Model):
     cliente = models.ForeignKey(User, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     cantidad = models.PositiveIntegerField()
     total = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'Venta de {self.cliente.username} - Total: {self.total}'
 
 

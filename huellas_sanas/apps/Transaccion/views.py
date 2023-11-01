@@ -1,11 +1,13 @@
+from email.headerregistry import ContentTypeHeader
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Producto, Servicio
+from .models import Producto, Servicio, Carrito, OrdenDeCompra
 from .forms import ProductoForm, ServicioForm
 from django.contrib import messages
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required
 import locale
+from django.contrib.contenttypes.models import ContentType
 
 @login_required
 def listar_productos(request):
@@ -267,4 +269,137 @@ def catalogo_servicios(request):
 
 def ver_detalles_producto(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
+
+    if request.method == 'POST':
+        cantidad = int(request.POST.get('cantidad', 1))
+
+        if cantidad <= 0 or cantidad > producto.cantidad_stock:
+            return render(request, 'Transaccion/ver_detalles_producto.html', {
+                'producto': producto,
+                'error_message': 'Cantidad no válida',
+            })
+
+        # Verifica si el producto ya está en el carrito del usuario
+        carrito_item = Carrito.objects.filter(cliente=request.user, content_type=ContentType.objects.get_for_model(Producto), object_id=producto.id, carrito=1).first()
+
+        if carrito_item:
+            # Si el producto ya está en el carrito, actualiza la cantidad
+            carrito_item.cantidad += cantidad
+            carrito_item.save()
+        else:
+            # Si no está en el carrito, crea un nuevo registro
+            carrito_item = Carrito(
+                cliente=request.user,
+                content_type=ContentType.objects.get_for_model(Producto),
+                object_id=producto.id,
+                cantidad=cantidad,
+                carrito=1
+            )
+            carrito_item.save()
+        
+        return redirect('carrito')
+
     return render(request, 'Transaccion/ver_detalles_producto.html', {'producto': producto})
+
+def agregar_al_carrito(request, id, tipo):
+    cantidad = int(request.POST.get('cantidad', 1))
+
+    if tipo == 'producto':
+        item = get_object_or_404(Producto, id=id)
+        content_type = ContentType.objects.get_for_model(Producto)
+    elif tipo == 'servicio':
+        item = get_object_or_404(Servicio, id=id)
+        content_type = ContentType.objects.get_for_model(Servicio)
+    else:
+        # Manejar error o redirigir a una página de error
+        pass
+
+    # Verifica si el producto o servicio ya está en el carrito del usuario
+    carrito_item = Carrito.objects.filter(cliente=request.user, content_type=content_type, object_id=id, carrito=1).first()
+
+    if carrito_item:
+        if tipo == 'servicio':
+            # Si es un servicio y ya está en el carrito, muestra un mensaje de error
+            messages.error(request, 'El servicio ya se encuentra en el carrito.')
+        else:
+            # Si es un producto, actualiza la cantidad
+            carrito_item.cantidad += cantidad
+            carrito_item.save()
+    else:
+        # Si no está en el carrito, crea un nuevo registro
+        carrito_item = Carrito(
+            cliente=request.user,
+            content_type=content_type,
+            object_id=id,
+            cantidad=cantidad,
+            carrito=1
+        )
+        carrito_item.save()
+
+    return redirect('carrito')
+
+def carrito(request):
+    carrito_items = Carrito.objects.filter(cliente=request.user, carrito=1)
+
+    total = sum(item.obtener_precio_total() for item in carrito_items)
+
+    # Agregar información adicional a los elementos del carrito para indicar si son servicios o productos
+    for item in carrito_items:
+        if isinstance(item.item, Servicio):
+            item.es_servicio = True
+        else:
+            item.es_servicio = False
+
+    return render(request, 'Transaccion/carrito.html', {'carrito_items': carrito_items, 'total': total})
+
+def realizar_compra(request):
+    # Tu lógica para procesar la compra aquí
+    return render(request, 'Transaccion/realizar_compra.html')
+
+from django.http import JsonResponse
+
+from django.http import Http404
+
+def eliminar_del_carrito(request, item_id):
+    # Busca el elemento del carrito por su ID y asegúrate de que pertenece al usuario actual
+    carrito_item = Carrito.objects.filter(id=item_id, cliente=request.user, carrito=1).first()
+
+    if carrito_item is not None:
+        # El elemento existe, elimínalo
+        carrito_item.delete()
+    else:
+        # El elemento no existe, puedes manejar esta situación como desees, por ejemplo, mostrar un mensaje de error o redirigir a una página de error.
+        raise Http404("El elemento que intentas eliminar no existe o no te pertenece")
+
+    # Redirige de nuevo a la vista del carrito
+    return redirect('carrito')
+
+def vaciar_carrito(request):
+    # Busca todos los elementos en el carrito del usuario actual
+    carrito_items = Carrito.objects.filter(cliente=request.user, carrito=1)
+    
+    # Elimina todos los elementos del carrito
+    carrito_items.delete()
+
+    # Redirige de nuevo a la vista del carrito
+    return redirect('carrito')
+
+from django.http import HttpResponseRedirect
+
+def aumentar_cantidad(request, item_id):
+    carrito_item = Carrito.objects.filter(id=item_id, cliente=request.user, carrito=1).first()
+
+    if carrito_item:
+        carrito_item.cantidad += 1
+        carrito_item.save()
+
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+def disminuir_cantidad(request, item_id):
+    carrito_item = Carrito.objects.filter(id=item_id, cliente=request.user, carrito=1).first()
+
+    if carrito_item and carrito_item.cantidad > 1:
+        carrito_item.cantidad -= 1
+        carrito_item.save()
+
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
