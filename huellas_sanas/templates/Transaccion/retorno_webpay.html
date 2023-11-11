@@ -1,0 +1,39 @@
+<!-- Transaccion/retorno_webpay.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resultado de la Transacción{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mt-4">
+        <h1>Resultado de la Transacción</h1>
+    </div>
+    {% if orden %}
+        <div class="alert {% if resultado == 'APROBADA' %}alert-success{% else %}alert-danger{% endif %}" role="alert">
+            {% if resultado == 'APROBADA' %}
+                <h2>Transacción Aprobada</h2>
+                <p>¡Gracias por su compra, {{ orden.cliente.username }}!</p>
+            {% else %}
+                <h2>Transacción Rechazada</h2>
+                <p>Lamentablemente, su transacción no ha podido ser procesada.</p>
+                <p>Las posibles causas de este rechazo son:</p>
+                <ul>
+                    <li>Error en el ingreso de los datos de su tarjeta de crédito o débito (fecha y/o código de seguridad).</li>
+                    <li>Su tarjeta de crédito o débito no cuenta con saldo suficiente.</li>
+                    <li>Tarjeta aún no habilitada en el sistema financiero.</li>
+                </ul>
+            {% endif %}
+            <hr>
+            <p>Número de orden de pedido: {{ orden.id }}</p>
+            <p>Monto de la transacción: ${{ orden.total }}</p>
+            <p>Fecha de la transacción: {{ orden.fecha|date:"d/m/Y H:i:s" }}</p>
+            </ul>
+        </div>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            Hubo un problema al procesar tu transacción. Por favor, intenta de nuevo o contacta con el soporte.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

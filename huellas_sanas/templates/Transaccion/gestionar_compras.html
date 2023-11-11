@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Gestionar cuentas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Visualizar Compras Presenciales</h2>
+            <p>Aquí puedes visualizar el historial de compras presenciales que has hecho.</p>
+            <a href="{% url 'listar_ventas' %}" class="btn btn-primary">Ver historial de compras</a>
+            <img class="img-fluid mt-5" src="{% static 'images/img/presencial.png' %}" alt="Presencial" style="width: 400px; height: 400px;">
+        </div>
+        <div class="col-md-6">
+            <h2>Visualizar Compras En Línea</h2>
+            <p>Aquí puedes visualizar el historial de compras en línea que has hecho.</p>
+            <a href="" class="btn btn-primary">Ver historial de compras</a>
+            <img class="img-fluid mt-5" src="{% static 'images/img/online.png' %}" alt="Online" style="width: 400px; height: 400px;">
+        </div>
+    </div>
+</div>
+{% endblock %}

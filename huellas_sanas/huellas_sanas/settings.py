@@ -28,6 +28,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Webpay configuration
+WEBPAY_API_KEY_ID = '597055555532'
+WEBPAY_API_KEY_SECRET = '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C'
+WEBPAY_RETURN_URL = 'http://localhost:8000/transaccion/webpay/return'  # Esta URL debe ser accesible por Webpay, por lo que en producción no puede ser localhost.
 
 # Application definition
 
@@ -38,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'widget_tweaks',
     'apps.Cita',
     'apps.Cuidado',
     'apps.Reporte',

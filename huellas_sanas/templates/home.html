@@ -50,80 +50,73 @@
             </a>
         </div>
         
-        <div class="text-center mt-4">
-            <h1>Bienvenido al Centro de Cuidado Huellas Sanas</h1>
-            <h4>Ofrecemos una amplia gama de servicios para cuidar de tus mascotas.</h4>
+        <div class="text-center mt-5">
+            <h1 class="display-4 fw-bold" style="color: #343a40;">Bienvenido al Centro de Cuidado Huellas Sanas</h1>
+            <p class="lead" style="color: #495057;">Ofrecemos una amplia gama de servicios para cuidar de tus mascotas.</p>
         </div>
         
         <div class="text-center mt-4">
-            <h2>Servicios y Productos Destacados</h2>
+            <h2 class="display-5 fw-bold" style="color: #343a40;">Servicios y Productos Destacados</h2>
         </div>
 
-        <div class="row mt-4">
-
-            <div class="col-md-6 mt-4">
-                <div class="row">
-                    <div class="col-md-6">
-                        <a href="{% url 'catalogo_servicios' %}#servicio1">
-                            <div class="border" style="padding: 10px;">
-                                <img class="img-fluid" src="{% static 'images/img/Servicio_cmg.jpg' %}" alt="Imagen 1" style="width: 250px; height: 250px;">
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                Consulta médica general
-                            </h5>
-                        <p class="card-text">
-                            Precio: $10.000 
-                        </p>
-                        <a href="{% url 'catalogo_servicios' %}#servicio1" class="btn btn-primary">Ver detalles</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 mt-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <a href="{% url 'catalogo_servicios' %}#servicio3">
-                        <div class="border" style="padding: 10px;">
-                            <img class="img-fluid" src="{% static 'images/img/Servicio_guarderia.jpg' %}" alt="Imagen 2" style="width: 250px; height: 250px;">
+        <div class="container-fluid my-5">
+            <div class="row no-gutters">
+                <!-- Tarjeta para la sección de Consulta Médica General -->
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <img class="card-img-top" src="{% static 'images/img/Cmg_home.jpg' %}" alt="Consulta Médica General">
+                        <div class="card-body d-flex flex-column">
+                            <h2 class="card-title">Consulta Médica</h2>
+                            <p class="card-text">Conoce nuestros servicios de salud para tus mascotas.</p>
+                            <a href="{% url 'catalogo_servicios' %}#servicio1" class="btn btn-light mt-auto">Ver detalles →</a>
                         </div>
-                    </a>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            Guardería
-                        </h5>
-                        <p class="card-text">
-                            Precio: $10.000
-                        </p>
-                        <a href="{% url 'catalogo_servicios' %}#servicio3" class="btn btn-primary">Ver detalles</a>
+                <!-- Tarjeta para la sección de Peluquería -->
+                <div class="col-md-4">
+                    <div class="card h-100"> <!-- La clase h-100 asegura que todas las tarjetas tengan la misma altura -->
+                        <img class="card-img-top" src="{% static 'images/img/Peluqueria_home.jpg' %}" alt="Peluqueria">
+                        <div class="card-body d-flex flex-column"> <!-- Flex column para alinear los elementos verticalmente -->
+                            <h2 class="card-title">Peluquería</h2>
+                            <p class="card-text">Dale a tu mascota un look fresco y elegante con nuestros estilistas expertos.</p>
+                            <a href="{% url 'catalogo_servicios' %}#servicio4" class="btn btn-light mt-auto">Ver detalles →</a> <!-- mt-auto para empujar el botón hacia abajo -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Tarjeta para la sección de Vacunación -->
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <img class="card-img-top" src="{% static 'images/img/Vacunacion_home.jpg' %}" alt="Vacunación">
+                        <div class="card-body d-flex flex-column">
+                            <h2 class="card-title">Vacunación</h2>
+                            <p class="card-text">Protege a tus mascotas con nuestro programa de vacunación.</p>
+                            <a href="{% url 'catalogo_servicios' %}#servicio5" class="btn btn-light mt-auto">Ver detalles →</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <div class="row mt-4">
 
             <div class="col-md-6">
                 <div class="row">
                     <div class="col-md-6">
-                        <a href="{% url 'ver_detalles_producto' 4 %}">
+                        <a href="{% url 'ver_detalles_producto' 6 %}">
                             <div class="border" style="padding: 10px;">
-                                <img class="img-fluid" src="{% static 'images/productos/7965.png.webp' %}" alt="Imagen 3" style="width: 250px; height: 250px;">
+                                <img class="img-fluid" src="{% static 'images/productos/7644-600x600.jpg.webp' %}" alt="Imagen 1" style="width: 250px; height: 250px;">
                             </div>
                         </a>
                     </div>
                     <div class="col-md-6">
                         <div class="card-body">
                             <h5 class="card-title">
-                                Proplan live clear felino 3 kg
+                                Royal canin pouch kitten 85 gr
                             </h5>
                             <p class="card-text">
-                                Precio: $33.990
+                                Precio: $1.790
                             </p>
-                            <a href="{% url 'ver_detalles_producto' 4 %}" class="btn btn-primary">Ver detalles</a>
+                            <a href="{% url 'ver_detalles_producto' 6 %}" class="btn btn-primary">Ver detalles</a>
                         </div>
                     </div>
                 </div>
@@ -133,7 +126,7 @@
                     <div class="col-md-6">
                         <a href="{% url 'ver_detalles_producto' 23 %}">
                             <div class="border" style="padding: 10px;">
-                                <img class="img-fluid" src="{% static 'images/productos/5202-600x600.jpg.webp' %}" alt="Imagen 4" style="width: 250px; height: 250px;">
+                                <img class="img-fluid" src="{% static 'images/productos/5202-600x600.jpg.webp' %}" alt="Imagen 2" style="width: 250px; height: 250px;">
                             </div>
                         </a>
                     </div>
@@ -146,6 +139,50 @@
                                 Precio: $10.990
                             </p>
                             <a href="{% url 'ver_detalles_producto' 23 %}" class="btn btn-primary">Ver detalles</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'ver_detalles_producto' 12 %}">
+                            <div class="border" style="padding: 10px;">
+                                <img class="img-fluid" src="{% static 'images/productos/7148.jpeg.webp' %}" alt="Imagen 3" style="width: 250px; height: 250px;">
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                Natures miracle jfc no more spraying 709ml
+                            </h5>
+                            <p class="card-text">
+                                Precio: $15.990
+                            </p>
+                            <a href="{% url 'ver_detalles_producto' 12 %}" class="btn btn-primary">Ver detalles</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'ver_detalles_producto' 18 %}">
+                            <div class="border" style="padding: 10px;">
+                                <img class="img-fluid" src="{% static 'images/productos/brit-care-adult-small-breed-lamb-rice-cordero-600x600.jpg.webp' %}" alt="Imagen 4" style="width: 250px; height: 250px;">
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                Brit care adult small breed lamb & rice 3 kg.
+                            </h5>
+                            <p class="card-text">
+                                Precio: $22.990
+                            </p>
+                            <a href="{% url 'ver_detalles_producto' 18 %}" class="btn btn-primary">Ver detalles</a>
                         </div>
                     </div>
                 </div>

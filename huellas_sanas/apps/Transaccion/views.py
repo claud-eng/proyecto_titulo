@@ -1,13 +1,24 @@
 from email.headerregistry import ContentTypeHeader
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Producto, Servicio, Carrito, OrdenDeCompra
-from .forms import ProductoForm, ServicioForm
+from .models import Producto, Servicio, Carrito, OrdenDeCompra, DetalleOrden, OrdenDeVenta, DetalleOrdenVenta
+from apps.Usuario.models import Cliente
+from .forms import ProductoForm, ServicioForm, OrdenDeVentaForm, DetalleOrdenVentaFormset, DetalleOrdenVentaServicioFormset
 from django.contrib import messages
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required
 import locale
 from django.contrib.contenttypes.models import ContentType
+import requests
+from django.shortcuts import redirect
+from django.db import transaction
+from django.http import HttpResponseRedirect
+from django.http import JsonResponse
+from django.http import Http404
+from django.db.models import Q
+from reportlab.pdfgen import canvas
+from django.http import HttpResponse
+import os
 
 @login_required
 def listar_productos(request):
@@ -356,10 +367,6 @@ def realizar_compra(request):
     # Tu lógica para procesar la compra aquí
     return render(request, 'Transaccion/realizar_compra.html')
 
-from django.http import JsonResponse
-
-from django.http import Http404
-
 def eliminar_del_carrito(request, item_id):
     # Busca el elemento del carrito por su ID y asegúrate de que pertenece al usuario actual
     carrito_item = Carrito.objects.filter(id=item_id, cliente=request.user, carrito=1).first()
@@ -384,8 +391,6 @@ def vaciar_carrito(request):
     # Redirige de nuevo a la vista del carrito
     return redirect('carrito')
 
-from django.http import HttpResponseRedirect
-
 def aumentar_cantidad(request, item_id):
     carrito_item = Carrito.objects.filter(id=item_id, cliente=request.user, carrito=1).first()
 
@@ -403,3 +408,391 @@ def disminuir_cantidad(request, item_id):
         carrito_item.save()
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+@transaction.atomic
+def crear_orden_de_compra(usuario, carrito_items, total):
+    """
+    Esta función crea una orden de compra en la base de datos y asocia los
+    elementos del carrito a dicha orden.
+
+    :param usuario: El usuario que está realizando la compra
+    :param carrito_items: Los ítems en el carrito de compras
+    :param total: El monto total de la orden
+    :return: La instancia de la orden de compra creada
+    """
+    # Crear la orden de compra
+    orden = OrdenDeCompra.objects.create(cliente=usuario, total=total)
+    
+    # Asociar los elementos del carrito a la orden de compra
+    for item in carrito_items:
+        detalle_orden_kwargs = {
+            'orden_compra': orden,
+            'precio': item.item.precio,
+            'cantidad': item.cantidad
+        }
+        if isinstance(item.item, Producto):
+            detalle_orden_kwargs['producto'] = item.item
+        else:
+            detalle_orden_kwargs['servicio'] = item.item
+        
+        DetalleOrden.objects.create(**detalle_orden_kwargs)
+    
+    # Luego de crear la orden, marcamos los elementos del carrito como comprados
+    carrito_items.update(carrito=0)  # Suponiendo que carrito=0 signifique que los ítems fueron comprados
+
+    return orden
+
+def iniciar_transaccion(request):
+    carrito_items = Carrito.objects.filter(cliente=request.user, carrito=1)
+    total = sum(item.obtener_precio_total() for item in carrito_items)
+    orden = crear_orden_de_compra(request.user, carrito_items, total)  # Crear la orden
+
+    # Datos para la API de Webpay
+    data = {
+        "buy_order": orden.id,
+        "session_id": request.session.session_key,
+        "amount": total,
+        "return_url": settings.WEBPAY_RETURN_URL
+    }
+
+    # Headers para la solicitud a la API de Webpay
+    headers = {
+        "Tbk-Api-Key-Id": settings.WEBPAY_API_KEY_ID,
+        "Tbk-Api-Key-Secret": settings.WEBPAY_API_KEY_SECRET,
+        "Content-Type": "application/json"
+    }
+
+    # Realizar la solicitud a la API de Webpay
+    response = requests.post('https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions', json=data, headers=headers)
+    
+    if response.status_code == 200:
+        token = response.json().get('token')
+        url = response.json().get('url')
+
+        # Aquí es donde guardas el token en la base de datos
+        orden.token_ws = token
+        orden.save()  # No olvides guardar la instancia después de modificarla
+
+        # Agrega registros de depuración
+        print("Transacción iniciada con éxito. Token:", token)
+        print("URL de redirección:", url)
+
+        return redirect(url + "?token_ws=" + token)
+    else:
+        # Imprime el error para revisarlo en la consola del servidor
+        print("Error al iniciar transacción con Webpay: ", response.status_code, response.text)
+        pass
+
+WEBPAY_CONFIRMATION_URL = 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions'
+
+def actualizar_estado_orden(token, exitosa):
+    orden = None
+    # Encuentra la orden por token
+    try:
+        orden = OrdenDeCompra.objects.get(token_ws=token)
+    except OrdenDeCompra.DoesNotExist:
+        print(f"Orden no encontrada para el token proporcionado: {token}")
+        return None  # O manejar de otra manera la ausencia de la orden
+
+    try:
+        if exitosa:
+            headers = {
+                "Content-Type": "application/json"
+                # "Authorization": "Bearer tu_token_de_autenticacion" si es necesario
+            }
+            
+            data = {"token": token}
+            response = requests.post(WEBPAY_CONFIRMATION_URL, json=data, headers=headers)
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                status = response_data.get('status', 'Estado no encontrado en la respuesta de Webpay')
+
+                # Mapeamos los estados de la transacción a los estados de la orden
+                estados = {
+                    'INITIALIZED': 'Iniciada',
+                    'AUTHORIZED': 'Autorizada',
+                    'REVERSED': 'Reversada',
+                    'FAILED': 'Fallida',
+                    'NULLIFIED': 'Anulada',
+                    'PARTIALLY_NULLIFIED': 'Parcialmente Anulada',
+                    'CAPTURED': 'Capturada',
+                }
+                orden.estado = estados.get(status, 'Estado Desconocido')
+                orden.token_ws = token  # Actualizamos el token por si acaso
+                orden.save()  # Guardamos los cambios en la orden
+            else:
+                error_message = f"Error al confirmar transacción con Webpay: {response.status_code} {response.text}"
+                print(error_message)
+                orden.estado = 'fallida'
+                orden.save()
+        else:
+            orden.estado = 'rechazada'
+            orden.save()
+    except Exception as e:
+        print(f"Se ha producido un error al actualizar el estado de la orden: {e}")
+        orden.estado = 'Error al actualizar'
+        orden.save()
+
+    return orden
+
+def verificar_transaccion(token):
+    # Configura los headers necesarios para la solicitud a Webpay
+    headers = {
+        "Content-Type": "application/json",
+        # Añade aquí cualquier otro header que necesites
+    }
+
+    # Cuerpo de la solicitud, ajusta los campos según la documentación de Webpay
+    data = {
+        "token": token
+    }
+
+    # Realiza la solicitud a la API de Webpay para verificar el estado de la transacción
+    response = requests.post(WEBPAY_CONFIRMATION_URL, json=data, headers=headers)
+
+    if response.status_code == 200:
+        # Si la respuesta es exitosa, procesa y devuelve la información de la transacción
+        response_data = response.json()
+        return {
+            'estado': response_data.get('estado'),  # Asegúrate de que estos campos corresponden con la respuesta de Webpay
+            'detalle': response_data.get('detalle'),  # Ejemplo de otro campo que podrías necesitar
+            # Añade aquí cualquier otro dato que necesites de la respuesta
+        }
+    else:
+        # Mejor manejo de errores con registro detallado
+        error_detail = f"No se pudo verificar la transacción con Webpay. Código de estado: {response.status_code}, Respuesta: {response.text}"
+        print(error_detail)  # Imprime el mensaje de error en la consola del servidor
+        # Podrías querer agregar aquí también un registro en un sistema de logging
+        return {
+            'estado': 'ERROR',
+            'detalle': error_detail
+        }
+    
+def retorno_webpay(request):
+    token = request.GET.get('token_ws')
+
+    # Llamada a la API de Webpay para confirmar la transacción
+    resultado_transaccion = verificar_transaccion(token)
+
+    if resultado_transaccion['estado'] == 'APROBADA':
+        # Actualizar el estado de la orden en la base de datos como exitosa
+        orden = actualizar_estado_orden(token, exitosa=True)
+        # Agrega registros de depuración
+        print("Transacción aprobada. Token:", token)
+    elif resultado_transaccion['estado'] == 'RECHAZADA':
+        # Actualizar el estado de la orden en la base de datos como no exitosa
+        orden = actualizar_estado_orden(token, exitosa=False)
+        # Agrega registros de depuración
+        print("Transacción rechazada. Token:", token)
+    else:
+        # Manejar otros posibles estados o errores
+        mensaje_error = resultado_transaccion.get('detalle', 'Hubo un problema al procesar tu transacción.')
+        orden = actualizar_estado_orden(token, exitosa=False)
+        # Agrega registros de depuración
+        print("Transacción con estado desconocido. Token:", token)
+        print("Mensaje de error:", mensaje_error)
+
+    # Ahora debes verificar si 'orden' es None antes de renderizar la página
+    if orden:
+        contexto = {'orden': orden, 'resultado': resultado_transaccion['estado']}
+    else:
+        contexto = {'error': 'Hubo un problema al procesar tu transacción.'}
+
+    # Renderizar la página con los detalles de la transacción
+    return render(request, 'Transaccion/retorno_webpay.html', contexto)
+
+@login_required
+def agregar_venta(request):
+    orden_venta_form = OrdenDeVentaForm(request.POST or None)
+    detalle_formset = DetalleOrdenVentaFormset(request.POST or None, prefix='productos')
+    detalle_servicio_formset = DetalleOrdenVentaServicioFormset(request.POST or None, prefix='servicios')
+    query_string = request.GET.urlencode()
+
+    if request.method == 'POST':
+        if orden_venta_form.is_valid() and detalle_formset.is_valid() and detalle_servicio_formset.is_valid():
+            # Calculamos el total de productos
+            total_productos = sum(form.cleaned_data.get('cantidad', 0) * form.cleaned_data.get('producto').precio for form in detalle_formset if form.cleaned_data.get('producto'))
+
+            # Calculamos el total de servicios
+            total_servicios = sum(form.cleaned_data.get('servicio').precio for form in detalle_servicio_formset if form.cleaned_data.get('servicio'))
+
+            # Sumamos ambos totales
+            total_venta = total_productos + total_servicios
+
+            # Obtenemos el pago del cliente
+            pago_cliente = orden_venta_form.cleaned_data.get('pago_cliente')
+
+            # Comprobamos si el pago del cliente es suficiente
+            if pago_cliente < total_venta:
+                messages.error(request, 'La cantidad ingresada a pagar es inferior al total de la venta.')
+                return render(request, 'Transaccion/agregar_venta.html', {
+                    'orden_venta_form': orden_venta_form,
+                    'detalle_formset': detalle_formset,
+                    'detalle_servicio_formset': detalle_servicio_formset,
+                    'query_string': query_string,
+                })
+
+            # Aseguramos que el stock es suficiente
+            stock_insuficiente = False
+            for form in detalle_formset:
+                if form.cleaned_data.get('producto'):
+                    producto = form.cleaned_data['producto']
+                    cantidad = form.cleaned_data['cantidad']
+                    if cantidad > producto.cantidad_stock:
+                        stock_insuficiente = True
+                        messages.error(request, f'Stock insuficiente para el producto {producto.nombre}.')
+                        break
+
+            if stock_insuficiente:
+                return render(request, 'Transaccion/agregar_venta.html', {
+                    'orden_venta_form': orden_venta_form,
+                    'detalle_formset': detalle_formset,
+                    'detalle_servicio_formset': detalle_servicio_formset,
+                    'query_string': query_string,
+                })
+
+            with transaction.atomic():
+                # Creamos y guardamos la instancia de orden de venta
+                orden_venta = orden_venta_form.save(commit=False)
+                orden_venta.total = total_venta
+                orden_venta.cambio = max(pago_cliente - total_venta, 0)
+                orden_venta.save()
+
+                # Actualizamos el stock y guardamos detalles de productos
+                for form in detalle_formset:
+                    if form.cleaned_data.get('producto'):
+                        producto = form.cleaned_data['producto']
+                        cantidad = form.cleaned_data['cantidad']
+                        producto.cantidad_stock -= cantidad
+                        producto.save()
+
+                        detalle = form.save(commit=False)
+                        detalle.orden_venta = orden_venta
+                        detalle.save()
+
+                # Guardamos detalles de servicios
+                for form in detalle_servicio_formset:
+                    if form.cleaned_data.get('servicio'):
+                        detalle = form.save(commit=False)
+                        detalle.orden_venta = orden_venta
+                        detalle.save()
+
+                messages.success(request, 'Venta registrada exitosamente.')
+                return redirect('listar_ventas')
+
+        else:
+            messages.error(request, 'Errores en el formulario de venta')
+
+    context = {
+        'orden_venta_form': orden_venta_form,
+        'detalle_formset': detalle_formset,
+        'detalle_servicio_formset': detalle_servicio_formset,
+        'query_string': query_string,
+    }
+    return render(request, 'Transaccion/agregar_venta.html', context)
+
+@login_required
+def listar_ventas(request):
+    # Obtener el valor de búsqueda del cliente desde la URL
+    cliente_query = request.GET.get('cliente', '')
+
+    # Inicializar una consulta vacía
+    query = Q()
+
+    # Si el usuario es un cliente, solo muestra sus ventas
+    if hasattr(request.user, 'cliente'):
+        query &= Q(cliente=request.user.cliente)
+    elif hasattr(request.user, 'empleado') and request.user.empleado.rol == 'Recepcionista':
+        if cliente_query:
+            query &= Q(cliente__user__username__icontains=cliente_query)
+    else:
+        # Redireccionar a otra página si el usuario no tiene permiso
+        return redirect('home')
+
+    # Filtrar las ventas según la consulta construida
+    ventas_filtradas = OrdenDeVenta.objects.filter(query).order_by('id')
+
+    # Configurar la paginación
+    paginator = Paginator(ventas_filtradas, 5)  # Mostrar 5 ventas por página
+    page = request.GET.get('page')
+
+    try:
+        ventas_paginadas = paginator.page(page)
+    except PageNotAnInteger:
+        ventas_paginadas = paginator.page(1)
+    except EmptyPage:
+        ventas_paginadas = paginator.page(paginator.num_pages)
+
+    ventas_list = []
+    for venta in ventas_paginadas:
+        productos = venta.detalleordenventa_set.filter(producto__isnull=False)
+        servicios = venta.detalleordenventa_set.filter(servicio__isnull=False)
+        # Agregar la información de productos y servicios al contexto de la plantilla
+        ventas_list.append({
+            'venta': venta,
+            'productos': productos,
+            'servicios': servicios,
+            'tiene_productos': productos.exists(),
+            'tiene_servicios': servicios.exists(),
+        })
+
+    return render(request, 'Transaccion/listar_ventas.html', {
+        'ventas_list': ventas_list,
+        'ventas_paginadas': ventas_paginadas,
+        'cliente_query': cliente_query,  # Agregamos esta línea para utilizarla en la plantilla HTML
+    })
+
+logo_path = os.path.join(settings.BASE_DIR, 'apps/static/images/img/logo.png')
+
+@login_required
+def generar_comprobante(request, id_venta):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="comprobante_venta_{id_venta}.pdf"'
+
+    p = canvas.Canvas(response)
+    venta = OrdenDeVenta.objects.get(id=id_venta)
+    detalles = venta.detalleordenventa_set.all()
+
+    y = 800  # Posición inicial en el eje Y para el texto
+
+    # Añadir el nombre de la empresa
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(100, y, "Empresa: Huellas Sanas S.A.")
+    y -= 20  # Ajustar el eje Y para el siguiente texto
+
+    # Detalles de la venta
+    p.drawString(100, y, f"Orden de Venta: {venta.id}")
+
+    # Verificar si el correo electrónico del cliente es diferente de anonimo@gmail.com
+    if venta.cliente.user.username != "anonimo@gmail.com":
+        p.drawString(100, y-20, f"Cliente: {venta.cliente.user.username}")
+        y -= 40  # Ajustar el eje Y para el siguiente texto (con nombre del cliente)
+    else:
+        y -= 20  # Ajustar menos el eje Y si se omite el nombre del cliente
+
+    p.drawString(100, y-20, f"Fecha: {venta.fecha_creacion.strftime('%d/%m/%Y %H:%M')}")
+    p.drawString(100, y-40, "Detalle:")
+
+    # Detalles de productos y servicios
+    y -= 80
+    for detalle in detalles:
+        if detalle.producto:
+            p.drawString(120, y, f"Producto: {detalle.producto.nombre} - Cantidad: {detalle.cantidad} - Precio Unitario: ${detalle.producto.precio}")
+            y -= 20
+        if detalle.servicio:
+            p.drawString(120, y, f"Servicio: {detalle.servicio.nombre} - Precio: ${detalle.servicio.precio}")
+            y -= 20
+
+    p.drawString(100, y-20, f"Total: ${venta.total}")
+    p.drawString(100, y-40, f"Pagó: ${venta.pago_cliente}")
+    p.drawString(100, y-60, f"Vuelto: ${venta.cambio}")
+
+    p.showPage()
+    p.save()
+    return response
+
+@login_required
+def gestionar_compras(request):
+    # Aquí puedes agregar la lógica para gestionar cuentas de usuarios
+    return render(request, 'Transaccion/gestionar_compras.html')

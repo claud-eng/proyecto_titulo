@@ -222,32 +222,21 @@ def listar_mascotas(request):
 
 @login_required
 def agregar_mascota(request):
-    # Vista para agregar una nueva mascota desde un formulario
-
-    # Obtener el usuario actualmente logeado
     user = request.user
 
-    # Verificar si el usuario tiene el rol de administrador o recepcionista
-    if user.is_authenticated and (hasattr(user, 'empleado') and user.empleado.rol in ['Administrador', 'Recepcionista']):
-        # Si es un empleado con esos roles, permitirle agregar una mascota para cualquier cliente
-        if request.method == "POST":
-            form = MascotaForm(request.POST)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Mascota agregada con éxito.')
-                return redirect('listar_mascotas')
-        else:
-            form = MascotaForm()
+    if request.method == "POST":
+        form = MascotaForm(request.POST, user=user)
+        if form.is_valid():
+            mascota = form.save(commit=False)
+            if user.is_authenticated and (hasattr(user, 'empleado') and user.empleado.rol in ['Administrador', 'Recepcionista']):
+                mascota.cliente = form.cleaned_data['cliente']
+            else:
+                mascota.cliente = user.cliente
+            mascota.save()
+            messages.success(request, 'Mascota agregada con éxito.')
+            return redirect('listar_mascotas')
     else:
-        # Si es un cliente, permitirle agregar una mascota solo para sí mismo
-        if request.method == "POST":
-            form = MascotaForm(request.POST, user=user)  # Pasa el usuario actual al formulario
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Mascota agregada con éxito.')
-                return redirect('listar_mascotas')
-        else:
-            form = MascotaForm(user=user)  # Pasa el usuario actual al formulario
+        form = MascotaForm(user=user)
 
     return render(request, "Cita/agregar_mascota.html", {'form': form})
 
@@ -276,14 +265,14 @@ def editar_mascota(request, mascota_id):
     mascota = get_object_or_404(Mascota, pk=mascota_id)
     
     if request.method == "POST":
-        form = EditarMascotaForm(request.POST, instance=mascota)
+        form = EditarMascotaForm(request.POST, instance=mascota, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Mascota editada con éxito.')
             return redirect('listar_mascotas')
         else:
-            print(form.errors)  # Agrega esta línea para ver errores en el formulario
+            messages.error(request, "Se encontraron errores en el formulario.")
     else:
-        form = EditarMascotaForm(instance=mascota)
+        form = EditarMascotaForm(instance=mascota, user=request.user)
     
     return render(request, 'Cita/editar_mascota.html', {'form': form, 'mascota': mascota})

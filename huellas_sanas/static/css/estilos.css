@@ -51,6 +51,10 @@
         font-weight: bold;
     }
 
+    .gestionar-ventas {
+        font-weight: bold;
+    }
+
     .custom-button {
         display: inline-block; /* Hace que los botones se muestren en la misma línea */
         margin-right: 10px; /* Ajusta el margen derecho para separar los botones */
@@ -58,4 +62,52 @@
 
     .estado-column {
         width: 180px; /* Establece un ancho fijo para la columna "Estado" */
+    }
+
+    .row.no-gutters {
+        margin-right: 0;
+        margin-left: 0;
+    }
+    
+    .row.no-gutters > [class^="col-"],
+    .row.no-gutters > [class*=" col-"] {
+        padding-right: 0;
+        padding-left: 0;
+    }
+    
+    .card {
+        margin-bottom: 0;
+        border-radius: 0;
+        overflow: hidden; /* Asegura que la imagen no se salga del borde de la tarjeta */
+    }
+    
+    .card-img-overlay {
+        position: relative;
+        color: #fff; /* Cambia el color del texto a blanco */
+        text-shadow: 0 0 10px rgba(0,0,0,0.3); /* Opcional: Añade sombra al texto para mejorar la legibilidad */
+        background-color: rgba(0,0,0,0.2); /* Opcional: Añade un ligero overlay para que el texto resalte más */
+        padding: 1rem; /* Añade un poco de espacio dentro de la tarjeta */
+    }
+    
+    .card-title {
+        font-size: 2rem; /* Ajusta el tamaño de la fuente del título */
+        /* Añade otros estilos como fuente, peso, etc. */
+    }
+    
+    .card-text {
+        font-size: 1rem;
+        /* Añade otros estilos como fuente, peso, etc. */
+    }
+    
+    .card-button {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #fff; /* Fondo blanco para el botón */
+        color: #000; /* Texto negro para el botón */
+        border: none; /* Elimina el borde del botón */
+        /* Añade otros estilos como padding, bordes redondeados si es necesario, etc. */
+        text-decoration: none; /* Elimina el subrayado del texto */
+        font-weight: bold; /* Texto en negrita para el botón */
     }

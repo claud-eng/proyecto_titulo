@@ -59,7 +59,10 @@
                             <td colspan="3" class="text-right"><strong>Total:</strong></td>
                             <td><strong>${{ total }}</strong></td>
                             <td>
-                                <a href="#" class="btn btn-success">Pagar</a>
+                                <form method="post" action="{% url 'iniciar_transaccion' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">Pagar</button>
+                                </form>
                                 <form method="post" action="{% url 'vaciar_carrito' %}">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-warning mt-1">Vaciar Carrito</button>

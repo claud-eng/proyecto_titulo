@@ -1,5 +1,6 @@
 from django.urls import path, include  # Importa path para definir rutas de URL e include para incluir otras configuraciones de URL
 from . import views  # Importa las vistas definidas en el directorio actual (directorio donde se encuentra este archivo)
+from .views import generar_comprobante
 
 urlpatterns = [
     # Ruta para gestionar el inventario siendo administrador
@@ -30,4 +31,10 @@ urlpatterns = [
     path('vaciar_carrito/', views.vaciar_carrito, name='vaciar_carrito'),
     path('aumentar_cantidad/<int:item_id>/', views.aumentar_cantidad, name='aumentar_cantidad'),
     path('disminuir_cantidad/<int:item_id>/', views.disminuir_cantidad, name='disminuir_cantidad'),
+    path('iniciar_transaccion/', views.iniciar_transaccion, name='iniciar_transaccion'),
+    path('webpay/return', views.retorno_webpay, name='retorno_webpay'),
+    path('agregar_venta', views.agregar_venta, name='agregar_venta'),
+    path('listar_ventas', views.listar_ventas, name='listar_ventas'),
+    path('ventas/comprobante/<int:id_venta>/', generar_comprobante, name='generar_comprobante'),
+    path('gestionar_compras', views.gestionar_compras, name='gestionar_compras'),
 ]

@@ -8,12 +8,6 @@
         <form method="post">
             {% csrf_token %}
             
-            {% if user.empleado and user.empleado.rol == 'Administrador' or user.empleado.rol == 'Recepcionista' %}
-            <div class="form-group">
-                <label for="id_cliente">Cliente:</label>
-                {{ form.cliente }}
-            </div>
-            {% endif %}
             {% if user.cliente or user.empleado and user.empleado.rol == 'Administrador' or user.empleado.rol == 'Recepcionista' %}
             <div class="form-group">
                 <label for="id_nombre">Nombre:</label>
