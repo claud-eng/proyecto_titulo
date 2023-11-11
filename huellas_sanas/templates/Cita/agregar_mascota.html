@@ -7,11 +7,18 @@
   <h1>Agregar Mascota</h1>
   <form method="post">
     {% csrf_token %}
-    
+        
     <div class="form-group">
       <label for="id_cliente">Cliente:</label>
       {{ form.cliente }}
-    </div>
+      <!-- Muestra errores específicos del campo cliente -->
+      {% if form.cliente.errors %}
+        <div class="alert alert-danger" role="alert">
+          {% for error in form.cliente.errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
     
     <div class="form-group">
       <label for="id_nombre">Nombre:</label>

@@ -4,6 +4,7 @@ from datetime import time
 from datetime import datetime, time
 from django.utils import timezone
 from pytz import timezone as tz
+from django.core.exceptions import ValidationError
 
 HORARIO_CHOICES = [(time(hour, minute).strftime('%H:%M'), time(hour, minute).strftime('%I:%M %p')) for hour in range(9, 22) for minute in [0, 30]]
 
@@ -133,11 +134,19 @@ class EditarCitaForm(forms.ModelForm):
         return cleaned_data
 
 class MascotaForm(forms.ModelForm):
+    cliente = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(MascotaForm, self).__init__(*args, **kwargs)
+        if self.user and hasattr(self.user, 'cliente'):
+            self.fields['cliente'].widget.attrs['readonly'] = True
+            self.fields['cliente'].initial = self.user.username
+
     class Meta:
         model = Mascota
         fields = ['cliente', 'nombre', 'especie', 'raza', 'estado']
         widgets = {
-            'cliente': forms.Select(attrs={'class': 'form-control'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'especie': forms.Select(attrs={'class': 'form-control', 'id': 'id_especie'}),
             'raza': forms.Select(attrs={'class': 'form-control', 'id': 'id_raza'}),
@@ -146,30 +155,26 @@ class MascotaForm(forms.ModelForm):
 
     def clean_nombre(self):
         nombre = self.cleaned_data.get('nombre')
-        # Asegúrate de que el nombre tenga la primera letra en mayúscula y el resto en minúscula
         return nombre.capitalize()
-    
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)  # Obtener el usuario actual de los argumentos
 
-        super(MascotaForm, self).__init__(*args, **kwargs)
-
-        if user:
-            # Verificar si el usuario es un cliente
-            if user.cliente:
-                # Si es un cliente, establecer el queryset del campo de Cliente para mostrar solo su propio cliente
-                self.fields['cliente'].queryset = Cliente.objects.filter(user=user.cliente.user)
-                self.fields['estado'].widget.choices = [('Sin atender', 'Sin atender')]
-            elif user.empleado and user.empleado.rol in ['Administrador', 'Recepcionista']:
-                # Si es un empleado con roles permitidos, mostrar todos los clientes en el queryset
-                self.fields['cliente'].queryset = Cliente.objects.all()
+    def clean_cliente(self):
+        username_cliente = self.cleaned_data.get('cliente')
+        try:
+            cliente = Cliente.objects.get(user__username=username_cliente)
+        except Cliente.DoesNotExist:
+            raise ValidationError(f"Cliente con nombre de usuario '{username_cliente}' no existe.")
+        return cliente
 
 class EditarMascotaForm(forms.ModelForm):
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(EditarMascotaForm, self).__init__(*args, **kwargs)
+
     class Meta:
         model = Mascota
-        fields = ['cliente', 'nombre', 'especie', 'raza', 'estado']
+        fields = ['nombre', 'especie', 'raza', 'estado']
         widgets = {
-            'cliente': forms.Select(attrs={'class': 'form-control'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'especie': forms.Select(attrs={'class': 'form-control', 'id': 'id_especie'}),
             'raza': forms.Select(attrs={'class': 'form-control', 'id': 'id_raza'}),  
@@ -178,6 +183,5 @@ class EditarMascotaForm(forms.ModelForm):
 
     def clean_nombre(self):
         nombre = self.cleaned_data.get('nombre')
-        # Asegúrate de que el nombre tenga la primera letra en mayúscula y el resto en minúscula
         return nombre.capitalize()
 

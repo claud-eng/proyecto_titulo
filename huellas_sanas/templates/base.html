@@ -28,10 +28,10 @@
                             <a class="nav-link" href="{% url 'home' %}">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'sobre_nosotros' %}">Sobre Nosotros</a>
+                            <a class="nav-link" href="{% url 'sobre_nosotros' %}">Sobre nosotros</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'preguntas_frecuentes' %}">Preguntas Frecuentes</a>
+                            <a class="nav-link" href="{% url 'preguntas_frecuentes' %}">Preguntas frecuentes</a>
                         </li>
                         <li class="nav-item">
                             {% if not user.is_authenticated or user.cliente %}
@@ -57,13 +57,16 @@
                                     <a class="nav-link" href="{% url 'listar_fichas' %}">Visualizar ficha médica</a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'gestionar_compras' %}">Visualizar historial de compras</a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link" href="{% url 'actualizar_datos_personales_cliente' %}">Actualizar datos personales</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="{% url 'cambiar_contraseña_cliente' %}">Cambiar contraseña</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link agendar-hora" href="{% url 'listar_citas' %}">Agendar Cita</a> 
+                                    <a class="nav-link agendar-hora" href="{% url 'listar_citas' %}">Agendar cita</a> 
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="{% url 'carrito' %}">
@@ -76,7 +79,7 @@
                                 <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'gestionar_inventario' %}">Gestionar Inventario</a>
+                                <a class="nav-link" href="{% url 'gestionar_inventario' %}">Gestionar inventario</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#">Visualizar reportes</a>
@@ -97,13 +100,13 @@
                                         <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" href="{% url 'gestionar_inventario' %}">Visualizar Inventario</a>
+                                        <a class="nav-link" href="{% url 'gestionar_inventario' %}">Visualizar inventario</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link agendar-hora" href="{% url 'listar_citas' %}">Gestionar citas</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" href="#">Gestionar Ventas</a>
+                                        <a class="nav-link gestionar-ventas" href="{% url 'listar_ventas' %}">Gestionar ventas</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{% url 'listar_clientes' %}">Gestionar clientes</a>
@@ -111,7 +114,7 @@
                                 {% endif %}
                             {% endif %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'logout' %}">Cerrar Sesión</a>
+                                <a class="nav-link" href="{% url 'logout' %}">Cerrar sesión</a>
                             </li>
                             <li class="nav-item">
                                 <p class="nav-link welcome-message"><strong>Bienvenido/a:</strong> <br> <span class="username">{{ user.first_name }} {{ user.last_name }}</span></p>
@@ -130,10 +133,10 @@
                         {% else %}
                             <!-- La opción "Agendar hora" se muestra para usuarios no autenticados -->
                             <li class="nav-item">
-                                <a class="nav-link agendar-hora" href="{% url 'agendar_cita_sin_login' %}">Agendar Cita</a> <!-- Aplicamos la clase CSS aquí -->
+                                <a class="nav-link agendar-hora" href="{% url 'agendar_cita_sin_login' %}">Agendar cita</a> <!-- Aplicamos la clase CSS aquí -->
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
+                                <a class="nav-link" href="{% url 'login' %}">Iniciar sesión</a>
                             </li>
                         {% endif %}
                     </ul>
