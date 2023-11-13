@@ -19,6 +19,20 @@ from django.db.models import Q
 from reportlab.pdfgen import canvas
 from django.http import HttpResponse
 import os
+from django.db.models import Count, Sum
+from datetime import datetime, timedelta
+from calendar import monthrange
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+import calendar
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib import colors
 
 @login_required
 def listar_productos(request):
@@ -796,3 +810,205 @@ def generar_comprobante(request, id_venta):
 def gestionar_compras(request):
     # Aquí puedes agregar la lógica para gestionar cuentas de usuarios
     return render(request, 'Transaccion/gestionar_compras.html')
+
+def top_cinco_productos_vendidos(anio, mes):
+    fecha_inicio = datetime(anio, mes, 1)
+    fecha_fin = datetime(anio, mes + 1, 1) if mes < 12 else datetime(anio + 1, 1, 1)
+    return Producto.objects.filter(detalleordenventa__orden_venta__fecha_creacion__range=[fecha_inicio, fecha_fin]).annotate(total_vendido=Sum('detalleordenventa__cantidad')).order_by('-total_vendido')[:5]
+
+def top_cinco_servicios_vendidos(anio, mes):
+    fecha_inicio = datetime(anio, mes, 1)
+    fecha_fin = datetime(anio, mes + 1, 1) if mes < 12 else datetime(anio + 1, 1, 1)
+    return Servicio.objects.filter(detalleordenventa__orden_venta__fecha_creacion__range=[fecha_inicio, fecha_fin]).annotate(total_vendido=Sum('detalleordenventa__cantidad')).order_by('-total_vendido')[:5]
+
+def generar_grafico_base64(datos):
+    fig, ax = plt.subplots()
+    ax.pie(datos['values'], labels=datos['labels'], autopct='%1.1f%%')
+    plt.axis('equal')
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    buffer.close()
+    graphic = base64.b64encode(image_png)
+    graphic = graphic.decode('utf-8')
+    return graphic
+
+def reportes_ventas(request):
+    anio_actual = datetime.now().year
+    mes_actual = datetime.now().month
+
+    anio = int(request.GET.get('anio', anio_actual))
+    mes = int(request.GET.get('mes', mes_actual))
+
+    top_cinco_productos = top_cinco_productos_vendidos(anio, mes)
+    top_cinco_servicios = top_cinco_servicios_vendidos(anio, mes)
+
+    mensaje_productos = ""
+    mensaje_servicios = ""
+
+    if not top_cinco_productos:
+        mensaje_productos = "No se han registrado ventas de productos en el mes seleccionado."
+
+    if not top_cinco_servicios:
+        mensaje_servicios = "No se han registrado ventas de servicios en el mes seleccionado."
+
+    datos_productos = json.dumps({
+        'labels': [producto.nombre for producto in top_cinco_productos],
+        'data': [producto.total_vendido for producto in top_cinco_productos]
+    }, cls=DjangoJSONEncoder) if top_cinco_productos else json.dumps({})
+
+    datos_servicios = json.dumps({
+        'labels': [servicio.nombre for servicio in top_cinco_servicios],
+        'data': [servicio.total_vendido for servicio in top_cinco_servicios]
+    }, cls=DjangoJSONEncoder) if top_cinco_servicios else json.dumps({})
+
+    # Diccionario de nombres de meses en español
+    meses = {
+        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+    }
+
+    nombre_mes = meses.get(mes, "Mes desconocido")
+
+    datos_grafico = {
+        'labels': [producto.nombre for producto in top_cinco_productos],
+        'values': [producto.total_vendido for producto in top_cinco_productos]
+    }
+    imagen_grafico = generar_grafico_base64(datos_grafico)
+
+    contexto = {
+        'datos_productos_json': datos_productos,
+        'datos_servicios_json': datos_servicios,
+        'mensaje_productos': mensaje_productos,
+        'mensaje_servicios': mensaje_servicios,
+        'rango_anios': range(2022, 2028),
+        'rango_meses': range(1, 13),
+        'anio_actual': anio_actual,
+        'mes_actual': mes_actual,
+        'anio_seleccionado': anio,
+        'mes_seleccionado': mes,
+        'nombre_mes': nombre_mes,
+        'imagen_grafico': imagen_grafico,
+        'top_cinco_productos': top_cinco_productos,
+        'top_cinco_servicios': top_cinco_servicios,
+    }
+
+    return render(request, 'Transaccion/reportes_ventas.html', contexto)
+
+MES_ESPANOL = {
+    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+}
+
+def exportar_pdf(request):
+    anio = request.GET.get('anioParaPDF', str(datetime.now().year))
+    mes = request.GET.get('mesParaPDF', str(datetime.now().month))
+
+    top_cinco_productos = top_cinco_productos_vendidos(int(anio), int(mes))
+    top_cinco_servicios = top_cinco_servicios_vendidos(int(anio), int(mes))
+    # Calcular el total vendido de productos y servicios
+    total_vendido_productos = sum([producto.total_vendido for producto in top_cinco_productos])
+    total_vendido_servicios = sum([servicio.total_vendido for servicio in top_cinco_servicios])
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="reporte_ventas_{anio}_{mes}.pdf"'
+
+    p = canvas.Canvas(response, pagesize=letter)
+    nombre_mes = MES_ESPANOL.get(int(mes), "Mes desconocido")
+
+    # La posición inicial en la página
+    y_position = 750
+
+    # Títulos de los gráficos
+    p.drawString(100, y_position, f"Reporte de Ventas del mes {nombre_mes} del año {anio}")
+    y_position -= 40
+
+    # Dibujo del gráfico de productos
+    if top_cinco_productos:
+        p.drawString(100, y_position, "Top 5 Productos Más Vendidos")
+        y_position -= 20
+
+        datos_para_grafico_productos = {
+            'labels': [producto.nombre for producto in top_cinco_productos],
+            'values': [producto.total_vendido for producto in top_cinco_productos]
+        }
+        imagen_grafico_productos = generar_grafico_base64(datos_para_grafico_productos)
+        imagen_grafico_productos = ImageReader(BytesIO(base64.b64decode(imagen_grafico_productos)))
+        p.drawImage(imagen_grafico_productos, 100, y_position - 220, width=400, height=200)
+
+        y_position -= 220 + 20
+
+        data_productos = [['Producto', 'Cantidad', 'Porcentaje']]
+        for producto in top_cinco_productos:
+            porcentaje = (producto.total_vendido / total_vendido_productos * 100) if total_vendido_productos else 0
+            data_productos.append([producto.nombre, producto.total_vendido, f"{porcentaje:.2f}%"])
+        tabla_productos = Table(data_productos, colWidths=[200, 100, 100], hAlign='LEFT')
+        tabla_productos.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+
+        tabla_productos.wrapOn(p, 400, 200)
+        tabla_productos.drawOn(p, 100, y_position - 20 * len(data_productos) - 10)
+        y_position -= 20 * len(data_productos) + 30
+
+    else:
+        # Después de dibujar el título "Top 5 Productos Más Vendidos"
+        p.drawString(100, y_position, "Top 5 Productos Más Vendidos")
+        y_position -= 40  # Tres líneas de espacio, asumiendo aproximadamente 20 puntos por línea
+
+        # Ahora dibujamos el mensaje de "No se han registrado ventas..."
+        p.drawString(100, y_position, "No se han registrado ventas de productos en el mes seleccionado.")
+        y_position -= 30  # Ajustamos para la próxima línea o sección
+
+    # Inmediatamente creamos una nueva página para los servicios
+    p.showPage()
+    y_position = 750
+    p.drawString(100, y_position, "Top 5 Servicios Más Vendidos")
+    y_position -= 40
+
+    # Dibujo del gráfico de servicios en la segunda página
+    if top_cinco_servicios:
+        datos_para_grafico_servicios = {
+            'labels': [servicio.nombre for servicio in top_cinco_servicios],
+            'values': [servicio.total_vendido for servicio in top_cinco_servicios]
+        }
+        imagen_grafico_servicios = generar_grafico_base64(datos_para_grafico_servicios)
+        imagen_grafico_servicios = ImageReader(BytesIO(base64.b64decode(imagen_grafico_servicios)))
+        p.drawImage(imagen_grafico_servicios, 100, y_position - 220, width=400, height=200)
+        y_position -= 220 + 20
+
+        data_servicios = [['Servicio', 'Cantidad', 'Porcentaje']]
+        for servicio in top_cinco_servicios:
+            porcentaje = (servicio.total_vendido / total_vendido_servicios * 100) if total_vendido_servicios else 0
+            data_servicios.append([servicio.nombre, servicio.total_vendido, f"{porcentaje:.2f}%"])
+        tabla_servicios = Table(data_servicios, colWidths=[200, 100, 100], hAlign='LEFT')
+        tabla_servicios.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+
+        tabla_servicios.wrapOn(p, 400, 200)
+        tabla_servicios.drawOn(p, 100, y_position - 20 * len(data_servicios) - 10)
+        y_position -= 20 * len(data_servicios) + 30
+
+    else:
+        p.drawString(100, y_position, "No se han registrado ventas de servicios en el mes seleccionado.")
+        y_position -= 30
+
+    # Guardar el PDF en el objeto de respuesta
+    p.save()
+    return response
