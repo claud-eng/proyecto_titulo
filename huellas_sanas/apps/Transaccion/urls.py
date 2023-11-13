@@ -37,4 +37,6 @@ urlpatterns = [
     path('listar_ventas', views.listar_ventas, name='listar_ventas'),
     path('ventas/comprobante/<int:id_venta>/', generar_comprobante, name='generar_comprobante'),
     path('gestionar_compras', views.gestionar_compras, name='gestionar_compras'),
+    path('reportes_ventas', views.reportes_ventas, name='reportes_ventas'),
+    path('exportar-pdf/', views.exportar_pdf, name='exportar_pdf'),
 ]
