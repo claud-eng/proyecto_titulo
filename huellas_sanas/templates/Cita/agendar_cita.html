@@ -1,24 +1,80 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}  <!-- Cargar la biblioteca aquí -->
 
 {% block title %}Agendar Cita{% endblock %}
 
 {% block content %}
 <div class="container">
-  <h1>Agendar Cita</h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+    <h1>Agendar Cita</h1>
+    <form method="post" id="formCita">
+        {% csrf_token %}
+        
+        <!-- Campo Cliente -->
+        <div class="form-group">
+            <label for="id_cliente_username">{{ form.cliente_username.label }}</label>
+            {{ form.cliente_username|add_class:"form-control" }}
+            {% if form.cliente_username.errors %}
+            <div class="alert alert-danger">
+                {{ form.cliente_username.errors.as_text }}
+            </div>
+            {% endif %}
+            {% if user.empleado and user.empleado.rol != 'Cliente' %}
+                <button type="button" id="verificarCliente" class="btn btn-info mt-2">Verificar Cliente</button>
+            {% endif %}
+        </div>
 
-    <button type="submit" class="btn btn-primary">Agendar Cita</button>
-    {% if user.is_authenticated %}
-    {% if user.cliente or user.empleado.rol == 'Recepcionista' %}
-        <a href="{% url 'listar_citas' %}" class="btn btn-secondary">Volver atrás</a>
+        <!-- Resto de campos, excluyendo 'cliente_username' -->
+        {% for field in form %}
+          {% if field.name != 'cliente_username' %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field|add_class:"form-control" }}
+                {% if field.errors %}
+                <div class="alert alert-danger">
+                    {{ field.errors.as_text }}
+                </div>
+                {% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">Agendar Cita</button>
+        {% if user.is_authenticated %}
+        {% if user.cliente or user.empleado.rol == 'Recepcionista' %}
+            <a href="{% url 'listar_citas' %}" class="btn btn-secondary">Volver atrás</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-secondary">Volver atrás</a>
+        {% endif %}
     {% else %}
         <a href="{% url 'login' %}" class="btn btn-secondary">Volver atrás</a>
     {% endif %}
-{% else %}
-    <a href="{% url 'login' %}" class="btn btn-secondary">Volver atrás</a>
-{% endif %}
-  </form>
+    </form>
 </div>
+
+<script>
+document.getElementById('verificarCliente').addEventListener('click', function() {
+    var username = document.getElementById('id_cliente_username').value;
+    fetch('{% url "verificar_cliente" %}?username=' + username)
+        .then(response => response.json())
+        .then(data => {
+            if (data.existe) {
+                var selectMascotas = document.getElementById('id_mascota');
+                selectMascotas.innerHTML = '';
+                data.mascotas.forEach(function(mascota) {
+                    var option = document.createElement('option');
+                    option.value = mascota.id;
+                    option.textContent = mascota.nombre;
+                    selectMascotas.appendChild(option);
+                });
+            } else {
+                alert('Cliente no encontrado.');
+            }
+        })
+        .catch(error => {
+            console.error('Error al verificar el cliente:', error);
+            alert('Ocurrió un error al verificar el cliente.');
+        });
+});
+</script>
+
 {% endblock %}

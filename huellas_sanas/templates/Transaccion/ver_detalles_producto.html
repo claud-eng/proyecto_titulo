@@ -18,7 +18,7 @@
             <div class="card-body">
                 <h5 class="card-title">{{ producto.nombre }}</h5>
                 <p class="card-text" style="text-align: justify;">{{ producto.descripcion }}</p>
-                <p class="card-text">Precio: ${{ producto.precio }}</p>
+                <p class="card-text">Precio (IVA incluido): ${{ producto.precio }}</p>
                 <p class="card-text">Cantidad en Stock: {{ producto.cantidad_stock }}</p>
                 {% if user.is_authenticated and user.cliente %}
                     <form method="post" action="{% url 'agregar_producto_al_carrito' producto.id %}">
@@ -30,9 +30,22 @@
                 {% else %}
                     <p>Debes iniciar sesión como cliente para poder continuar con la compra.</p>
                 {% endif %}
-                <a href="{% url 'catalogo_productos' %}" class="btn btn-secondary">Volver atrás</a>
+                <a href="#" id="volverAtrasBtn" class="btn btn-secondary mt-1">Volver atrás</a>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var volverAtrasBtn = document.getElementById("volverAtrasBtn");
+    
+        if (volverAtrasBtn) {
+            volverAtrasBtn.addEventListener("click", function() {
+                window.history.back();
+            });
+        }
+    });
+</script>
+
 {% endblock %}

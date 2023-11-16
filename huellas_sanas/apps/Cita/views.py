@@ -2,10 +2,12 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Cita, Mascota
 from apps.Cita.models import Cita, Mascota
+from apps.Usuario.models import Cliente
 from .forms import CitaForm, EditarCitaForm, MascotaForm, EditarMascotaForm
 from django.contrib import messages
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 
 @login_required
 def listar_citas(request):
@@ -69,6 +71,13 @@ def listar_citas(request):
     })
 
 @login_required
+def cambiar_estado_pago(request, cita_id):
+    cita = get_object_or_404(Cita, id=cita_id)
+    cita.ha_pagado = not cita.ha_pagado
+    cita.save()
+    return redirect('listar_citas')  # Redirige de nuevo a la lista de citas
+
+@login_required
 def agendar_cita(request):
     # Vista para agregar una nueva cita desde un formulario
 
@@ -80,7 +89,7 @@ def agendar_cita(request):
         if hasattr(user, 'empleado') and user.empleado.rol == 'Recepcionista':
             # Si es un empleado con rol de Recepcionista, permitirle agregar una cita para cualquier cliente
             if request.method == "POST":
-                form = CitaForm(request.POST, user=user)
+                form = CitaForm(request.POST, user=request.user)  # Pasa el usuario actual al formulario
                 if form.is_valid():
                     form.save()
                     messages.success(request, 'Cita agendada con éxito.')
@@ -96,7 +105,7 @@ def agendar_cita(request):
                     messages.success(request, 'Cita agendada con éxito.')
                     return redirect('listar_citas')
             else:
-                form = CitaForm(user=user)  # Pasa el usuario actual al formulario
+                form = CitaForm(user=request.user)  # Pasa el usuario actual al formulario
         else:
             # Otros usuarios no permitidos, redireccionar o mostrar un mensaje de error según sea necesario
             # Puedes personalizar esto de acuerdo a tus requerimientos
@@ -107,6 +116,17 @@ def agendar_cita(request):
         return HttpResponse("Acceso no autorizado")
 
     return render(request, "Cita/agendar_cita.html", {'form': form})
+
+@login_required
+def verificar_cliente(request):
+    username = request.GET.get('username')
+    try:
+        cliente = Cliente.objects.get(user__username=username)
+        mascotas = Mascota.objects.filter(cliente=cliente)
+        mascotas_data = [{'id': mascota.id, 'nombre': mascota.nombre} for mascota in mascotas]
+        return JsonResponse({'mascotas': mascotas_data, 'existe': True})
+    except Cliente.DoesNotExist:
+        return JsonResponse({'existe': False})
 
 def agendar_cita_sin_login(request):
     return render(request, 'Cita/agendar_cita_sin_login.html')

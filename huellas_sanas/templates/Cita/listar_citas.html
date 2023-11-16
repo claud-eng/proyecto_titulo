@@ -36,12 +36,14 @@
                 <th>ID</th>
                 {% endif %}
                 <th>Cliente</th>
-                <th>Veterinario</th>
+                <th>Número de Teléfono</th>
                 <th>Mascota</th>
+                <th>Veterinario</th>
                 <th>Fecha</th>
                 <th>Hora</th>
                 <th>Motivo</th>
                 <th>Estado</th>
+                <th>¿Ha pagado?</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -52,17 +54,22 @@
                     <td>{{ cita.id }}</td>
                     {% endif %}
                     <td>{{ cita.cliente.user.username }}</td>
-                    <td>{{ cita.veterinario.user.username }}</td>
+                    <td>{{ cita.cliente.numero_telefono }}</td>
                     <td>{{ cita.mascota.nombre }}</td>
+                    <td>{{ cita.veterinario.user.first_name }} {{ cita.veterinario.user.last_name }} {{ cita.veterinario.second_last_name }}</td>
                     <td>{{ cita.fecha }}</td>
                     <td>{{ cita.hora }}</td>
                     <td>{{ cita.get_motivo_display }}</td>
                     <td>{{ cita.get_estado_display }}</td>
+                    <td>{{ cita.ha_pagado|yesno:"Sí,No" }}</td>
                     <td>
                       <div class="d-flex align-items-center">
                         {% if user.empleado and user.empleado.rol == 'Recepcionista' %}
                             <a href="{% url 'editar_cita' cita.id %}" class="btn btn-primary btn-sm">Editar</a>
                             <a href="{% url 'confirmar_borrar_cita' cita.id %}" class="btn btn-danger btn-sm ml-2">Borrar</a>
+                            <a href="{% url 'cambiar_estado_pago' cita.id %}" class="btn btn-secondary btn-sm ml-2">
+                              Cambiar Estado de Pago
+                            </a>
                         {% endif %}
                         {% if user.cliente or user.empleado and user.empleado.rol == 'Recepcionista' %}
                             <a href="{% url 'confirmar_cancelar_cita' cita.id %}" class="btn btn-warning btn-sm ml-2">Cancelar</a>
@@ -101,5 +108,19 @@
           {% endif %}
         </ul>
       </nav>
+      <a href="#" id="volverAtrasBtn" class="btn btn-secondary mt-1">Volver atrás</a>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      var volverAtrasBtn = document.getElementById("volverAtrasBtn");
+  
+      if (volverAtrasBtn) {
+          volverAtrasBtn.addEventListener("click", function() {
+              window.history.back();
+          });
+      }
+  });
+</script>
+
 {% endblock %}

@@ -1,16 +1,68 @@
 {% extends 'base.html' %}
-
+{% load widget_tweaks %}
 {% block title %}Agregar Ficha Médica{% endblock %}
 
 {% block content %}
 <div class="container">
-  <h1>Agregar Ficha Médica</h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+    <h1>Agregar Ficha Médica</h1>
+    <form method="post" id="formFicha">
+        {% csrf_token %}
+        
+        <!-- Campo Cliente -->
+        <div class="form-group">
+          <label for="id_cliente_username">{{ form.cliente_username.label }}</label>
+          {{ form.cliente_username|add_class:"form-control" }}
+          {% if form.cliente_username.errors %}
+          <div class="alert alert-danger">
+              {{ form.cliente_username.errors.as_text }}
+          </div>
+          {% endif %}
+          <button type="button" id="verificarCliente" class="btn btn-info mt-2">Verificar Cliente</button>
+        </div>
 
-    <button type="submit" class="btn btn-primary">Agregar Ficha</button>
-    <a href="{% url 'listar_fichas' %}" class="btn btn-secondary">Volver atrás</a>
-  </form>
+        <!-- Resto de campos, excluyendo 'cliente' -->
+        {% for field in form %}
+          {% if field.name != 'cliente_username' %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field|add_class:"form-control" }}
+                {% if field.errors %}
+                <div class="alert alert-danger">
+                    {{ field.errors.as_text }}
+                </div>
+                {% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">Agregar Ficha</button>
+        <a href="{% url 'listar_fichas' %}" class="btn btn-secondary">Volver atrás</a>
+    </form>
 </div>
+
+<script>
+document.getElementById('verificarCliente').addEventListener('click', function() {
+    var username = document.getElementById('id_cliente_username').value;
+    fetch('{% url "verificar_cliente_ficha" %}?username=' + username)
+        .then(response => response.json())
+        .then(data => {
+            if (data.existe) {
+                var selectMascotas = document.getElementById('id_mascota');
+                selectMascotas.innerHTML = '';
+                data.mascotas.forEach(function(mascota) {
+                    var option = document.createElement('option');
+                    option.value = mascota.id;
+                    option.textContent = mascota.nombre;
+                    selectMascotas.appendChild(option);
+                });
+            } else {
+                alert('Cliente no encontrado.');
+            }
+        })
+        .catch(error => {
+            console.error('Error al verificar el cliente:', error);
+            alert('Ocurrió un error al verificar el cliente.');
+        });
+});
+</script>
 {% endblock %}

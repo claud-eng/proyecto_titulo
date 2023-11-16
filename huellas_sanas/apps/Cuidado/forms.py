@@ -1,12 +1,20 @@
 from django import forms
+from apps.Cita.models import Mascota
 from .models import Ficha
+from apps.Usuario.models import Cliente
 
 class FichaForm(forms.ModelForm):
+    cliente_username = forms.CharField(
+        label='Cliente',
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        required=True
+    )
+
     class Meta:
         model = Ficha
-        fields = ['cliente', 'mascota', 'veterinario', 'fecha', 'medicamento', 'dosis', 'instrucciones']
+        exclude = ['cliente']
         widgets = {
-            'cliente': forms.Select(attrs={'class': 'form-control'}),
             'mascota': forms.Select(attrs={'class': 'form-control'}),
             'veterinario': forms.Select(attrs={'class': 'form-control'}),
             'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -15,25 +23,38 @@ class FichaForm(forms.ModelForm):
             'instrucciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        medicamento = cleaned_data.get('medicamento')
-        dosis = cleaned_data.get('dosis')
-        instrucciones = cleaned_data.get('instrucciones')
+    def clean_cliente_username(self):
+        username = self.cleaned_data.get('cliente_username')
+        try:
+            cliente = Cliente.objects.get(user__username=username)
+            return cliente
+        except Cliente.DoesNotExist:
+            raise forms.ValidationError("Cliente no encontrado. Asegúrese de ingresar un nombre de usuario válido.")
+        
+    def save(self, commit=True):
+        ficha = super().save(commit=False)
+        username = self.cleaned_data.get('cliente_username')
+        if username:
+            cliente = Cliente.objects.get(user__username=username)
+            ficha.cliente = cliente
+        if commit:
+            ficha.save()
+            self.save_m2m()
+        return ficha
 
-        if medicamento:
-            cleaned_data['medicamento'] = medicamento.capitalize()
-        if dosis:
-            cleaned_data['dosis'] = dosis.capitalize()
-        if instrucciones:
-            cleaned_data['instrucciones'] = instrucciones.capitalize()
-
-        return cleaned_data
-    
     def __init__(self, *args, **kwargs):
+        exclude_fields = kwargs.pop('exclude_fields', [])
         super(FichaForm, self).__init__(*args, **kwargs)
-        # Agregar una opción vacía al campo cliente
-        self.fields['cliente'].empty_label = "---------"
+        self.fields['mascota'].queryset = Mascota.objects.none()
 
-        # Opcional: Puedes deshabilitar la opción vacía si no deseas que sea seleccionable
-        # self.fields['cliente'].required = True
+        # Excluir campos si se especifican
+        for field in exclude_fields:
+            if field in self.fields:
+                del self.fields[field]
+
+        if 'cliente_username' in self.data:
+            try:
+                cliente_id = Cliente.objects.get(user__username=self.data.get('cliente_username')).id
+                self.fields['mascota'].queryset = Mascota.objects.filter(cliente_id=cliente_id).order_by('nombre')
+            except (ValueError, TypeError, Cliente.DoesNotExist):
+                pass  # Cliente inválido o no encontrado

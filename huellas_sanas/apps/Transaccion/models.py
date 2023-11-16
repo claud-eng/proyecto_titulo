@@ -31,7 +31,7 @@ class Servicio(models.Model):
 
 # Clase para registrar los productos o servicios en el carrito de un cliente
 class Carrito(models.Model):
-    cliente = models.ForeignKey(User, on_delete=models.CASCADE)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     item = GenericForeignKey('content_type', 'object_id')
@@ -48,13 +48,17 @@ class ContenidoCarrito(models.Model):
     carrito = GenericRelation('Carrito')  # Agrega este campo para la relación inversa
 
 class OrdenDeCompra(models.Model):
-    cliente = models.ForeignKey(User, on_delete=models.CASCADE)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     productos = models.ManyToManyField(Producto, through='DetalleOrden')  # Utilizamos una relación ManyToMany a través de un modelo intermedio
     servicios = models.ManyToManyField(Servicio, through='DetalleOrden')
     total = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=20, default='pendiente')  # Puede ser pendiente, aprobada, rechazada, etc.
     token_ws = models.CharField(max_length=100, null=True, blank=True)
+    numero_orden = models.CharField(max_length=26, null=True, blank=True)
+    tipo_pago = models.CharField(max_length=30, null=True, blank=True)  # VD, VN, VC, etc.
+    monto_cuotas = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    numero_cuotas = models.PositiveIntegerField(null=True, blank=True)
 
 class DetalleOrden(models.Model):
     orden_compra = models.ForeignKey(OrdenDeCompra, on_delete=models.CASCADE)
