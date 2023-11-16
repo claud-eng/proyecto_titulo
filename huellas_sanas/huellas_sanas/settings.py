@@ -28,11 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-# Webpay configuration
-WEBPAY_API_KEY_ID = '597055555532'
-WEBPAY_API_KEY_SECRET = '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C'
-WEBPAY_RETURN_URL = 'http://localhost:8000/transaccion/webpay/return'  # Esta URL debe ser accesible por Webpay, por lo que en producción no puede ser localhost.
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -145,7 +140,7 @@ STATIC_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static',
 
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
-EMAIL_HOST_PASSWORD = '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' # this is your API key
+EMAIL_HOST_PASSWORD = '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' # this is your API key
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

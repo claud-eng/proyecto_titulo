@@ -82,7 +82,7 @@
                                 <a class="nav-link" href="{% url 'gestionar_inventario' %}">Gestionar inventario</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'reportes_ventas' %}">Visualizar reportes</a>
+                                <a class="nav-link" href="{% url 'reportes_ventas' %}">Visualizar reporte de ventas presenciales</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'gestionar_cuentas' %}">Gestionar cuentas</a>
@@ -106,7 +106,10 @@
                                         <a class="nav-link agendar-hora" href="{% url 'listar_citas' %}">Gestionar citas</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link gestionar-ventas" href="{% url 'listar_ventas' %}">Gestionar ventas</a>
+                                        <a class="nav-link gestionar-ventas" href="{% url 'listar_ventas' %}">Gestionar ventas presenciales</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'listar_ventas_online' %}">Visualizar ventas online</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{% url 'listar_clientes' %}">Gestionar clientes</a>

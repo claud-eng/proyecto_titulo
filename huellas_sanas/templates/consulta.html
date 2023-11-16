@@ -4,7 +4,10 @@
 {% block content %}
 <div class="container mt-5">
     <h1>Enviar consulta o reclamo</h1>
-    <form method="post" action="{% url 'enviar_consulta' %}">
+    <p class="lead" style="text-align: justify;">
+        En esta sección, puedes ponerte en contacto con nosotros para cualquier consulta que tengas sobre nuestra empresa, servicios o productos. Si necesitas solicitar un reembolso, hacer un reclamo o simplemente tienes preguntas, estamos aquí para ayudarte. Rellena el formulario a continuación y, si lo necesitas, adjunta una imagen para ilustrar mejor tu situación. Nos esforzamos por responder a todas las consultas de manera oportuna y eficiente.
+    </p>
+    <form method="post" action="{% url 'enviar_consulta' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
             <label for="correo">Correo Electrónico:</label>
@@ -15,15 +18,18 @@
             <input type="text" class="form-control" id="asunto" name="asunto" required>
         </div>
         <div class="form-group">
+            <label for="archivo">Adjuntar imagen (opcional):</label>
+            <input type="file" class="form-control" id="archivo" name="archivo" accept="image/*">
+        </div>
+        <div class="form-group">
             <label for="mensaje">Mensaje:</label>
             <textarea class="form-control" id="mensaje" name="mensaje" rows="5" required maxlength="500"></textarea>
             <span id="contador-caracteres">0 / 500 caracteres</span>
         </div>            
         <button type="submit" class="btn btn-primary">Enviar</button>
-        <a href="{% url 'home' %}" class="btn btn-secondary">Volver atrás</a>
+        <a href="#" id="volverAtrasBtn" class="btn btn-secondary mt-1">Volver atrás</a>
     </form>
 </div>
-
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -36,6 +42,18 @@ document.addEventListener("DOMContentLoaded", function() {
         contadorCaracteres.textContent = caracteresIngresados + " / " + caracteresMaximos + " caracteres";
     });
 });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var volverAtrasBtn = document.getElementById("volverAtrasBtn");
+    
+        if (volverAtrasBtn) {
+            volverAtrasBtn.addEventListener("click", function() {
+                window.history.back();
+            });
+        }
+    });
 </script>
 
 {% endblock %}

@@ -1,5 +1,6 @@
 from django.urls import path, include  # Importa path para definir rutas de URL e include para incluir otras configuraciones de URL
 from . import views  # Importa las vistas definidas en el directorio actual (directorio donde se encuentra este archivo)
+from .views import cambiar_estado_pago
 
 urlpatterns = [
     # Rutas para las citas
@@ -27,4 +28,6 @@ urlpatterns = [
     path('borrar_mascota/<int:mascota_id>', views.borrar_mascota, name="borrar_mascota"),
     # Confirmar antes de borrar un empleado
     path('confirmar-borrar-mascota/<int:mascota_id>/', views.confirmar_borrar_mascota, name='confirmar_borrar_mascota'),
+    path('verificar-cliente/', views.verificar_cliente, name='verificar_cliente'),
+    path('cita/cambiar_estado_pago/<int:cita_id>/', cambiar_estado_pago, name='cambiar_estado_pago'),
 ]

@@ -42,6 +42,7 @@
                 <th>Medicamento</th>
                 <th>Dosis</th>
                 <th>Instrucciones</th>
+                <th>Exportar</th>
                 {% if user.empleado.rol == 'Veterinario' %}
                 <th>Acciones</th>
                 {% endif %}
@@ -55,11 +56,14 @@
               {% endif %}
               <td>{{ ficha.cliente.user.username }}</td>
               <td>{{ ficha.mascota.nombre }}</td>
-              <td>{{ ficha.veterinario.user.username }}</td>
+              <td>{{ ficha.veterinario.user.first_name }} {{ ficha.veterinario.user.last_name }} {{ ficha.veterinario.second_last_name }}</td>
               <td>{{ ficha.fecha }}</td>
               <td>{{ ficha.medicamento }}</td>
               <td>{{ ficha.dosis }}</td>
-              <td>{{ ficha.instrucciones }}</td>
+              <td style="text-align: justify;">{{ ficha.instrucciones }}</td>
+              <td>
+                <a href="{% url 'generar_ficha_pdf' ficha.id %}" class="btn btn-primary btn-sm">Descargar</a>
+            </td>
               {% if user.empleado.rol == 'Veterinario' %}
               <td>
                   <div class="d-flex align-items-center">
@@ -100,5 +104,19 @@
           {% endif %}
         </ul>
     </nav>
+    <a href="#" id="volverAtrasBtn" class="btn btn-secondary mt-1">Volver atrás</a>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      var volverAtrasBtn = document.getElementById("volverAtrasBtn");
+  
+      if (volverAtrasBtn) {
+          volverAtrasBtn.addEventListener("click", function() {
+              window.history.back();
+          });
+      }
+  });
+</script>
+
 {% endblock %}

@@ -10,7 +10,6 @@ from django.contrib.auth.decorators import login_required
 import locale
 from django.contrib.contenttypes.models import ContentType
 import requests
-from django.shortcuts import redirect
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -33,6 +32,16 @@ import base64
 from io import BytesIO
 from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
+from transbank.error.transbank_error import TransbankError
+from transbank.webpay.webpay_plus.transaction import Transaction
+from transbank.common.integration_type import IntegrationType
+from transbank.common.options import WebpayOptions
+import uuid
+import time
+import datetime  
+from django.utils import timezone
+from datetime import datetime
+from django.core.mail import EmailMessage
 
 @login_required
 def listar_productos(request):
@@ -304,8 +313,10 @@ def ver_detalles_producto(request, producto_id):
                 'error_message': 'Cantidad no válida',
             })
 
-        # Verifica si el producto ya está en el carrito del usuario
-        carrito_item = Carrito.objects.filter(cliente=request.user, content_type=ContentType.objects.get_for_model(Producto), object_id=producto.id, carrito=1).first()
+        # Obtén la instancia de Cliente
+        cliente = Cliente.objects.get(user=request.user)
+
+        carrito_item = Carrito.objects.filter(cliente=cliente, content_type=ContentType.objects.get_for_model(Producto), object_id=producto.id, carrito=1).first()
 
         if carrito_item:
             # Si el producto ya está en el carrito, actualiza la cantidad
@@ -314,7 +325,7 @@ def ver_detalles_producto(request, producto_id):
         else:
             # Si no está en el carrito, crea un nuevo registro
             carrito_item = Carrito(
-                cliente=request.user,
+                cliente=cliente,  # Usa la instancia de Cliente
                 content_type=ContentType.objects.get_for_model(Producto),
                 object_id=producto.id,
                 cantidad=cantidad,
@@ -326,8 +337,11 @@ def ver_detalles_producto(request, producto_id):
 
     return render(request, 'Transaccion/ver_detalles_producto.html', {'producto': producto})
 
+@login_required
 def agregar_al_carrito(request, id, tipo):
     cantidad = int(request.POST.get('cantidad', 1))
+
+    cliente = Cliente.objects.get(user=request.user)
 
     if tipo == 'producto':
         item = get_object_or_404(Producto, id=id)
@@ -340,7 +354,7 @@ def agregar_al_carrito(request, id, tipo):
         pass
 
     # Verifica si el producto o servicio ya está en el carrito del usuario
-    carrito_item = Carrito.objects.filter(cliente=request.user, content_type=content_type, object_id=id, carrito=1).first()
+    carrito_item = Carrito.objects.filter(cliente=cliente, content_type=content_type, object_id=id, carrito=1).first()
 
     if carrito_item:
         if tipo == 'servicio':
@@ -353,7 +367,7 @@ def agregar_al_carrito(request, id, tipo):
     else:
         # Si no está en el carrito, crea un nuevo registro
         carrito_item = Carrito(
-            cliente=request.user,
+            cliente=cliente,  # Usa la instancia de Cliente
             content_type=content_type,
             object_id=id,
             cantidad=cantidad,
@@ -363,8 +377,13 @@ def agregar_al_carrito(request, id, tipo):
 
     return redirect('carrito')
 
+@login_required
 def carrito(request):
-    carrito_items = Carrito.objects.filter(cliente=request.user, carrito=1)
+    # Obtén la instancia de Cliente asociada con el usuario actual
+    cliente = Cliente.objects.get(user=request.user)
+
+    # Filtra los carritos por el cliente, no por el usuario
+    carrito_items = Carrito.objects.filter(cliente=cliente, carrito=1)
 
     total = sum(item.obtener_precio_total() for item in carrito_items)
 
@@ -377,13 +396,16 @@ def carrito(request):
 
     return render(request, 'Transaccion/carrito.html', {'carrito_items': carrito_items, 'total': total})
 
+@login_required
 def realizar_compra(request):
     # Tu lógica para procesar la compra aquí
     return render(request, 'Transaccion/realizar_compra.html')
 
+@login_required
 def eliminar_del_carrito(request, item_id):
-    # Busca el elemento del carrito por su ID y asegúrate de que pertenece al usuario actual
-    carrito_item = Carrito.objects.filter(id=item_id, cliente=request.user, carrito=1).first()
+    cliente = Cliente.objects.get(user=request.user)
+
+    carrito_item = Carrito.objects.filter(id=item_id, cliente=cliente, carrito=1).first()
 
     if carrito_item is not None:
         # El elemento existe, elimínalo
@@ -395,9 +417,11 @@ def eliminar_del_carrito(request, item_id):
     # Redirige de nuevo a la vista del carrito
     return redirect('carrito')
 
+@login_required
 def vaciar_carrito(request):
-    # Busca todos los elementos en el carrito del usuario actual
-    carrito_items = Carrito.objects.filter(cliente=request.user, carrito=1)
+    cliente = Cliente.objects.get(user=request.user)
+
+    carrito_items = Carrito.objects.filter(cliente=cliente, carrito=1)
     
     # Elimina todos los elementos del carrito
     carrito_items.delete()
@@ -405,8 +429,11 @@ def vaciar_carrito(request):
     # Redirige de nuevo a la vista del carrito
     return redirect('carrito')
 
+@login_required
 def aumentar_cantidad(request, item_id):
-    carrito_item = Carrito.objects.filter(id=item_id, cliente=request.user, carrito=1).first()
+    cliente = Cliente.objects.get(user=request.user)
+
+    carrito_item = Carrito.objects.filter(id=item_id, cliente=cliente, carrito=1).first()
 
     if carrito_item:
         carrito_item.cantidad += 1
@@ -414,8 +441,11 @@ def aumentar_cantidad(request, item_id):
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
+@login_required
 def disminuir_cantidad(request, item_id):
-    carrito_item = Carrito.objects.filter(id=item_id, cliente=request.user, carrito=1).first()
+    cliente = Cliente.objects.get(user=request.user)
+
+    carrito_item = Carrito.objects.filter(id=item_id, cliente=cliente, carrito=1).first()
 
     if carrito_item and carrito_item.cantidad > 1:
         carrito_item.cantidad -= 1
@@ -423,6 +453,7 @@ def disminuir_cantidad(request, item_id):
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
+@login_required
 @transaction.atomic
 def crear_orden_de_compra(usuario, carrito_items, total):
     """
@@ -434,8 +465,9 @@ def crear_orden_de_compra(usuario, carrito_items, total):
     :param total: El monto total de la orden
     :return: La instancia de la orden de compra creada
     """
+    cliente = Cliente.objects.get(user=usuario)
     # Crear la orden de compra
-    orden = OrdenDeCompra.objects.create(cliente=usuario, total=total)
+    orden = OrdenDeCompra.objects.create(cliente=cliente, total=total)
     
     # Asociar los elementos del carrito a la orden de compra
     for item in carrito_items:
@@ -456,165 +488,285 @@ def crear_orden_de_compra(usuario, carrito_items, total):
 
     return orden
 
+@login_required
 def iniciar_transaccion(request):
-    carrito_items = Carrito.objects.filter(cliente=request.user, carrito=1)
+    cliente = Cliente.objects.get(user=request.user)
+
+    carrito_items = Carrito.objects.filter(cliente=cliente, carrito=1)
     total = sum(item.obtener_precio_total() for item in carrito_items)
-    orden = crear_orden_de_compra(request.user, carrito_items, total)  # Crear la orden
 
-    # Datos para la API de Webpay
-    data = {
-        "buy_order": orden.id,
-        "session_id": request.session.session_key,
-        "amount": total,
-        "return_url": settings.WEBPAY_RETURN_URL
-    }
+    # Verifica si el carrito está vacío (total es 0)
+    if total == 0:
+        messages.error(request, "Tu carrito está vacío.")
+        return redirect('carrito')
 
-    # Headers para la solicitud a la API de Webpay
-    headers = {
-        "Tbk-Api-Key-Id": settings.WEBPAY_API_KEY_ID,
-        "Tbk-Api-Key-Secret": settings.WEBPAY_API_KEY_SECRET,
-        "Content-Type": "application/json"
-    }
+    # Valores para el entorno de integración (pruebas)
+    commerce_code = '597055555532'
+    api_key = '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C'
 
-    # Realizar la solicitud a la API de Webpay
-    response = requests.post('https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions', json=data, headers=headers)
-    
-    if response.status_code == 200:
-        token = response.json().get('token')
-        url = response.json().get('url')
+    tx = Transaction(WebpayOptions(commerce_code, api_key, IntegrationType.TEST))
 
-        # Aquí es donde guardas el token en la base de datos
-        orden.token_ws = token
-        orden.save()  # No olvides guardar la instancia después de modificarla
+    # Generar un buy_order único dentro del límite de longitud
+    timestamp = int(time.time())
+    short_uuid = uuid.uuid4().hex[:10]  # toma solo los primeros 10 caracteres
+    buy_order = f"{timestamp}{short_uuid}"
 
-        # Agrega registros de depuración
-        print("Transacción iniciada con éxito. Token:", token)
-        print("URL de redirección:", url)
+    if len(buy_order) > 26:
+        buy_order = buy_order[:26]  # asegurarse de que no exceda los 26 caracteres
 
-        return redirect(url + "?token_ws=" + token)
-    else:
-        # Imprime el error para revisarlo en la consola del servidor
-        print("Error al iniciar transacción con Webpay: ", response.status_code, response.text)
-        pass
-
-WEBPAY_CONFIRMATION_URL = 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions'
-
-def actualizar_estado_orden(token, exitosa):
-    orden = None
-    # Encuentra la orden por token
-    try:
-        orden = OrdenDeCompra.objects.get(token_ws=token)
-    except OrdenDeCompra.DoesNotExist:
-        print(f"Orden no encontrada para el token proporcionado: {token}")
-        return None  # O manejar de otra manera la ausencia de la orden
+    session_id = request.session.session_key or 'session-unknown'
+    amount = total
+    return_url = request.build_absolute_uri('/transaccion/transaccion_finalizada/')
 
     try:
-        if exitosa:
-            headers = {
-                "Content-Type": "application/json"
-                # "Authorization": "Bearer tu_token_de_autenticacion" si es necesario
+        response = tx.create(buy_order, session_id, amount, return_url)
+        if 'url' in response and 'token' in response:
+            return redirect(response['url'] + "?token_ws=" + response['token'])
+        else:
+            return HttpResponse("Error: la respuesta de Transbank no contiene URL o token")
+    except TransbankError as e:
+        print(e.message)
+        return HttpResponse("Error al crear la transacción: " + str(e.message))
+
+@login_required
+def generar_comprobante_pdf_correo(orden):
+    buffer = BytesIO()
+
+    p = canvas.Canvas(buffer)
+
+    # La lógica de dibujo es la misma que en generar_comprobante_online
+    p.drawString(100, 800, "Empresa: Huellas Sanas S.A")
+    p.drawString(100, 785, "Número de Orden: {}".format(orden.numero_orden))
+    p.drawString(100, 770, "Cliente: {}".format(orden.cliente.user.username))
+
+    fecha_local = timezone.localtime(orden.fecha)
+    p.drawString(100, 755, "Fecha y Hora: {}".format(fecha_local.strftime("%d/%m/%Y %H:%M")))
+    p.drawString(100, 740, "Detalle:")
+
+    y = 725
+    detalles = DetalleOrden.objects.filter(orden_compra=orden)
+    for detalle in detalles:
+        producto_o_servicio = detalle.producto if detalle.producto else detalle.servicio
+        p.drawString(120, y, "{} - Cantidad: {} - Precio: ${}".format(producto_o_servicio.nombre, detalle.cantidad, detalle.precio))
+        y -= 15
+
+    # Conversión de tipo de pago
+    tipo_pago_conversion = {
+        'VD': 'Venta Débito',
+        'VN': 'Venta Normal',
+        'VC': 'Venta en Cuotas',
+        'SI': '3 Cuotas sin Interés',
+        'S2': '2 Cuotas sin Interés',
+        'NC': 'N Cuotas sin Interés',
+        'VP': 'Venta Prepago'
+    }
+    tipo_pago = tipo_pago_conversion.get(orden.tipo_pago, orden.tipo_pago)
+    monto_cuotas = orden.monto_cuotas if orden.monto_cuotas is not None else 0
+
+    p.drawString(100, y, "Tipo de Pago: {}".format(tipo_pago))
+    p.drawString(100, y-15, "Monto de Cuotas: ${}".format(monto_cuotas))
+    p.drawString(100, y-30, "Número de Cuotas: {}".format(orden.numero_cuotas))
+    p.drawString(100, y-45, "Total (IVA incluido): ${}".format(orden.total))
+
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    return buffer
+
+@login_required
+def transaccion_finalizada(request):
+    token_ws = request.GET.get('token_ws')
+    cliente = Cliente.objects.get(user=request.user)
+
+    commerce_code = '597055555532'
+    api_key = '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C'
+    tx = Transaction(WebpayOptions(commerce_code, api_key, IntegrationType.TEST))
+
+    try:
+        response = tx.commit(token_ws)
+        contexto = {}
+
+        # Modificación aquí: Usar get_or_create en lugar de create
+        orden, created = OrdenDeCompra.objects.get_or_create(
+            token_ws=token_ws,
+            defaults={
+                'cliente': cliente,
+                'total': response.get('amount', 0),
+                'estado': 'pendiente',
+                'fecha': timezone.now(),
+                'numero_orden': response.get('buy_order'),
+                'tipo_pago': response.get('payment_type_code', None),
+                'monto_cuotas': response.get('installments_amount', None),
+                'numero_cuotas': response.get('installments_number', None)
             }
-            
-            data = {"token": token}
-            response = requests.post(WEBPAY_CONFIRMATION_URL, json=data, headers=headers)
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                status = response_data.get('status', 'Estado no encontrado en la respuesta de Webpay')
+        )
 
-                # Mapeamos los estados de la transacción a los estados de la orden
-                estados = {
-                    'INITIALIZED': 'Iniciada',
-                    'AUTHORIZED': 'Autorizada',
-                    'REVERSED': 'Reversada',
-                    'FAILED': 'Fallida',
-                    'NULLIFIED': 'Anulada',
-                    'PARTIALLY_NULLIFIED': 'Parcialmente Anulada',
-                    'CAPTURED': 'Capturada',
-                }
-                orden.estado = estados.get(status, 'Estado Desconocido')
-                orden.token_ws = token  # Actualizamos el token por si acaso
-                orden.save()  # Guardamos los cambios en la orden
-            else:
-                error_message = f"Error al confirmar transacción con Webpay: {response.status_code} {response.text}"
-                print(error_message)
-                orden.estado = 'fallida'
+        if not created:
+            # Si la orden ya existía, prepara un mensaje y finaliza el procesamiento
+            contexto['mensaje_error'] = "Esta transacción ya ha sido procesada."
+            contexto['orden'] = orden
+            return render(request, 'Transaccion/retorno_webpay.html', contexto)
+
+        detalles_compra = []
+        transaccion_exitosa = False
+
+        if response.get('status') == 'AUTHORIZED':
+            transaccion_exitosa = True
+            carrito_items = Carrito.objects.filter(cliente=cliente, carrito=1)
+            stock_insuficiente = False
+
+            for item in carrito_items:
+                if isinstance(item.item, Producto) and item.item.cantidad_stock < item.cantidad:
+                    stock_insuficiente = True
+                    break
+
+            if stock_insuficiente:
+                orden.estado = 'rechazada'
+                contexto['mensaje_error'] = "Stock insuficiente para uno o más productos."
                 orden.save()
+                return render(request, 'Transaccion/retorno_webpay.html', contexto)
+            else:
+                orden.estado = 'aprobada'
+                for item in carrito_items:
+                    detalle = {
+                        'nombre': item.item.nombre,
+                        'cantidad': item.cantidad,
+                        'precio_unitario': item.item.precio,
+                        'precio_total': item.obtener_precio_total()
+                    }
+                    detalles_compra.append(detalle)
+                    if isinstance(item.item, Producto):
+                        producto = item.item
+                        producto.cantidad_stock -= item.cantidad
+                        producto.save()
+
+                    DetalleOrden.objects.create(
+                        orden_compra=orden,
+                        producto=item.item if isinstance(item.item, Producto) else None,
+                        servicio=item.item if isinstance(item.item, Servicio) else None,
+                        precio=item.obtener_precio_total(),
+                        cantidad=item.cantidad
+                    )
+
+                carrito_items.update(carrito=0)
+
         else:
             orden.estado = 'rechazada'
-            orden.save()
-    except Exception as e:
-        print(f"Se ha producido un error al actualizar el estado de la orden: {e}")
-        orden.estado = 'Error al actualizar'
+            contexto['mensaje_error'] = "Transacción rechazada por el banco"
+
         orden.save()
 
-    return orden
+        contexto['orden'] = orden
+        contexto['transaccion_exitosa'] = transaccion_exitosa
+        contexto['detalles_compra'] = detalles_compra
 
-def verificar_transaccion(token):
-    # Configura los headers necesarios para la solicitud a Webpay
-    headers = {
-        "Content-Type": "application/json",
-        # Añade aquí cualquier otro header que necesites
+        # Enviar correo electrónico con comprobante de pago si la transacción es exitosa
+        if transaccion_exitosa:
+            buffer_pdf = generar_comprobante_pdf_correo(orden)
+
+            email_subject = "Comprobante de Pago - Orden {}".format(orden.numero_orden)
+            email_body = "Aquí está su comprobante de pago para la orden {}.".format(orden.numero_orden)
+            email = EmailMessage(
+                email_subject,
+                email_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [cliente.user.email]
+            )
+
+            email.attach('comprobante_orden_{}.pdf'.format(orden.numero_orden), buffer_pdf.getvalue(), 'application/pdf')
+
+            email.send()
+
+        return render(request, 'Transaccion/retorno_webpay.html', contexto)
+
+    except TransbankError as e:
+        return HttpResponse(f"Error al procesar la transacción: {e.message}")
+
+@login_required
+def listar_ventas_online(request):
+    cliente_query = request.GET.get('cliente', '')
+
+    query = Q()
+
+    query &= Q(estado='aprobada')
+
+    if hasattr(request.user, 'cliente'):
+        query &= Q(cliente=request.user.cliente)
+    elif hasattr(request.user, 'empleado') and request.user.empleado.rol == 'Recepcionista':
+        if cliente_query:
+            query &= Q(cliente__user__username__icontains=cliente_query)
+    else:
+        return redirect('home')
+
+    ordenes_compra = OrdenDeCompra.objects.filter(query).order_by('fecha')
+
+    paginator = Paginator(ordenes_compra, 5)
+    page = request.GET.get('page')
+
+    try:
+        ordenes_paginadas = paginator.page(page)
+    except PageNotAnInteger:
+        ordenes_paginadas = paginator.page(1)
+    except EmptyPage:
+        ordenes_paginadas = paginator.page(paginator.num_pages)
+
+    context = {
+        'ordenes_paginadas': ordenes_paginadas,
+        'cliente_query': cliente_query,
+        'es_recepcionista': hasattr(request.user, 'empleado') and request.user.empleado.rol == 'Recepcionista'
     }
 
-    # Cuerpo de la solicitud, ajusta los campos según la documentación de Webpay
-    data = {
-        "token": token
+    return render(request, 'Transaccion/listar_ventas_online.html', context)
+
+@login_required
+def generar_comprobante_online(request, numero_orden):
+    orden = get_object_or_404(OrdenDeCompra, numero_orden=numero_orden)
+    detalles = DetalleOrden.objects.filter(orden_compra=orden)
+
+    # Crear un HttpResponse con los headers de PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="comprobante_orden_{}.pdf"'.format(orden.numero_orden)
+
+    # Crear el PDF
+    p = canvas.Canvas(response)
+
+    p.drawString(100, 800, "Empresa: Huellas Sanas S.A")
+    p.drawString(100, 785, "Número de Orden: {}".format(orden.numero_orden))
+    p.drawString(100, 770, "Cliente: {}".format(orden.cliente.user.username))
+    fecha_local = timezone.localtime(orden.fecha)
+    p.drawString(100, 755, "Fecha y Hora: {}".format(fecha_local.strftime("%d/%m/%Y %H:%M")))
+    p.drawString(100, 740, "Detalle:")
+
+    y = 725
+    for detalle in detalles:
+        producto_o_servicio = detalle.producto if detalle.producto else detalle.servicio
+        p.drawString(120, y, "{} - Cantidad: {} - Precio: ${}".format(producto_o_servicio.nombre, detalle.cantidad, detalle.precio))
+        y -= 15
+
+    # Conversión de tipo de pago
+    tipo_pago_conversion = {
+        'VD': 'Venta Débito',
+        'VN': 'Venta Normal',
+        'VC': 'Venta en Cuotas',
+        'SI': '3 Cuotas sin Interés',
+        'S2': '2 Cuotas sin Interés',
+        'NC': 'N Cuotas sin Interés',
+        'VP': 'Venta Prepago'
     }
+    tipo_pago = tipo_pago_conversion.get(orden.tipo_pago, orden.tipo_pago)
 
-    # Realiza la solicitud a la API de Webpay para verificar el estado de la transacción
-    response = requests.post(WEBPAY_CONFIRMATION_URL, json=data, headers=headers)
+    # Manejo del monto de cuotas nulo
+    monto_cuotas = orden.monto_cuotas if orden.monto_cuotas is not None else 0
 
-    if response.status_code == 200:
-        # Si la respuesta es exitosa, procesa y devuelve la información de la transacción
-        response_data = response.json()
-        return {
-            'estado': response_data.get('estado'),  # Asegúrate de que estos campos corresponden con la respuesta de Webpay
-            'detalle': response_data.get('detalle'),  # Ejemplo de otro campo que podrías necesitar
-            # Añade aquí cualquier otro dato que necesites de la respuesta
-        }
-    else:
-        # Mejor manejo de errores con registro detallado
-        error_detail = f"No se pudo verificar la transacción con Webpay. Código de estado: {response.status_code}, Respuesta: {response.text}"
-        print(error_detail)  # Imprime el mensaje de error en la consola del servidor
-        # Podrías querer agregar aquí también un registro en un sistema de logging
-        return {
-            'estado': 'ERROR',
-            'detalle': error_detail
-        }
-    
-def retorno_webpay(request):
-    token = request.GET.get('token_ws')
+    p.drawString(100, y, "Tipo de Pago: {}".format(tipo_pago))
+    p.drawString(100, y-15, "Monto de Cuotas: ${}".format(monto_cuotas))
+    p.drawString(100, y-30, "Número de Cuotas: {}".format(orden.numero_cuotas))
+    p.drawString(100, y-45, "Total (IVA incluido): ${}".format(orden.total))
 
-    # Llamada a la API de Webpay para confirmar la transacción
-    resultado_transaccion = verificar_transaccion(token)
-
-    if resultado_transaccion['estado'] == 'APROBADA':
-        # Actualizar el estado de la orden en la base de datos como exitosa
-        orden = actualizar_estado_orden(token, exitosa=True)
-        # Agrega registros de depuración
-        print("Transacción aprobada. Token:", token)
-    elif resultado_transaccion['estado'] == 'RECHAZADA':
-        # Actualizar el estado de la orden en la base de datos como no exitosa
-        orden = actualizar_estado_orden(token, exitosa=False)
-        # Agrega registros de depuración
-        print("Transacción rechazada. Token:", token)
-    else:
-        # Manejar otros posibles estados o errores
-        mensaje_error = resultado_transaccion.get('detalle', 'Hubo un problema al procesar tu transacción.')
-        orden = actualizar_estado_orden(token, exitosa=False)
-        # Agrega registros de depuración
-        print("Transacción con estado desconocido. Token:", token)
-        print("Mensaje de error:", mensaje_error)
-
-    # Ahora debes verificar si 'orden' es None antes de renderizar la página
-    if orden:
-        contexto = {'orden': orden, 'resultado': resultado_transaccion['estado']}
-    else:
-        contexto = {'error': 'Hubo un problema al procesar tu transacción.'}
-
-    # Renderizar la página con los detalles de la transacción
-    return render(request, 'Transaccion/retorno_webpay.html', contexto)
+    p.showPage()
+    p.save()
+    return response
 
 @login_required
 def agregar_venta(request):
@@ -625,6 +777,20 @@ def agregar_venta(request):
 
     if request.method == 'POST':
         if orden_venta_form.is_valid() and detalle_formset.is_valid() and detalle_servicio_formset.is_valid():
+
+            cliente = orden_venta_form.cleaned_data.get('cliente')
+            # Verifica si el ID del cliente es 1
+            if cliente.id == 1:
+                # Verifica si hay servicios intentando ser comprados
+                if any(form.cleaned_data for form in detalle_servicio_formset):
+                    messages.error(request, 'Este cliente no puede comprar servicios.')
+                    return render(request, 'Transaccion/agregar_venta.html', {
+                        'orden_venta_form': orden_venta_form,
+                        'detalle_formset': detalle_formset,
+                        'detalle_servicio_formset': detalle_servicio_formset,
+                        'query_string': query_string,
+                    })
+                
             # Calculamos el total de productos
             total_productos = sum(form.cleaned_data.get('cantidad', 0) * form.cleaned_data.get('producto').precio for form in detalle_formset if form.cleaned_data.get('producto'))
 
@@ -757,8 +923,6 @@ def listar_ventas(request):
         'cliente_query': cliente_query,  # Agregamos esta línea para utilizarla en la plantilla HTML
     })
 
-logo_path = os.path.join(settings.BASE_DIR, 'apps/static/images/img/logo.png')
-
 @login_required
 def generar_comprobante(request, id_venta):
     response = HttpResponse(content_type='application/pdf')
@@ -798,7 +962,7 @@ def generar_comprobante(request, id_venta):
             p.drawString(120, y, f"Servicio: {detalle.servicio.nombre} - Precio: ${detalle.servicio.precio}")
             y -= 20
 
-    p.drawString(100, y-20, f"Total: ${venta.total}")
+    p.drawString(100, y-20, f"Total (IVA incluido): ${venta.total}")
     p.drawString(100, y-40, f"Pagó: ${venta.pago_cliente}")
     p.drawString(100, y-60, f"Vuelto: ${venta.cambio}")
 
@@ -808,7 +972,6 @@ def generar_comprobante(request, id_venta):
 
 @login_required
 def gestionar_compras(request):
-    # Aquí puedes agregar la lógica para gestionar cuentas de usuarios
     return render(request, 'Transaccion/gestionar_compras.html')
 
 def top_cinco_productos_vendidos(anio, mes):
@@ -820,6 +983,7 @@ def top_cinco_servicios_vendidos(anio, mes):
     fecha_inicio = datetime(anio, mes, 1)
     fecha_fin = datetime(anio, mes + 1, 1) if mes < 12 else datetime(anio + 1, 1, 1)
     return Servicio.objects.filter(detalleordenventa__orden_venta__fecha_creacion__range=[fecha_inicio, fecha_fin]).annotate(total_vendido=Sum('detalleordenventa__cantidad')).order_by('-total_vendido')[:5]
+
 
 def generar_grafico_base64(datos):
     fig, ax = plt.subplots()
@@ -833,6 +997,7 @@ def generar_grafico_base64(datos):
     graphic = base64.b64encode(image_png)
     graphic = graphic.decode('utf-8')
     return graphic
+
 
 def reportes_ventas(request):
     anio_actual = datetime.now().year
@@ -903,6 +1068,7 @@ MES_ESPANOL = {
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
 
+@login_required
 def exportar_pdf(request):
     anio = request.GET.get('anioParaPDF', str(datetime.now().year))
     mes = request.GET.get('mesParaPDF', str(datetime.now().month))
@@ -1012,3 +1178,4 @@ def exportar_pdf(request):
     # Guardar el PDF en el objeto de respuesta
     p.save()
     return response
+

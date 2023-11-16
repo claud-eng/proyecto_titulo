@@ -33,7 +33,7 @@
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
-                <th>Precio</th>
+                <th>Precio (IVA incluido)</th>
                 {% if user.empleado and user.empleado.rol == 'Administrador' %}
                 <th>Acciones</th>
                 {% endif %}
@@ -44,7 +44,7 @@
                 <tr>
                     <td>{{ servicio.id }}</td>
                     <td>{{ servicio.nombre }}</td>
-                    <td>{{ servicio.descripcion }}</td>
+                    <td style="text-align: justify;">{{ servicio.descripcion }}</td>
                     <td>${{ servicio.precio }}</td>
                     {% if user.empleado and user.empleado.rol == 'Administrador' %}
                     <td>

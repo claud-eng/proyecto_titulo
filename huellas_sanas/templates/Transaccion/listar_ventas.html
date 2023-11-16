@@ -51,11 +51,11 @@
         <table class="table table-hover">
             <thead class="thead-dark">
                 <tr>
-                    <th>ID Venta</th>
+                    <th>Número de Orden</th>
                     <th>Cliente</th>
                     <th>Fecha</th>
                     <th>Detalle</th>
-                    <th>Total</th>
+                    <th>Total (IVA incluido)</th>
                     <th>Pagó</th>
                     <th>Vuelto</th>
                     <th>Emitir Comprobante</th>
@@ -128,7 +128,7 @@
     <!-- Botón Volver atrás para clientes -->
     {% if user.cliente %}
         <div class="mt-4">
-            <a href="{% url 'gestionar_compras' %}" class="btn btn-secondary">Volver atrás</a>
+            <a href="{% url 'gestionar_compras' %}"><button class="btn btn-danger">Volver al menú principal</button></a>
         </div>
     {% endif %}
         

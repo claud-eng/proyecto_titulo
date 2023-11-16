@@ -97,5 +97,19 @@
           {% endif %}
         </ul>
       </nav>
+      <a href="#" id="volverAtrasBtn" class="btn btn-secondary mt-1">Volver atrás</a>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      var volverAtrasBtn = document.getElementById("volverAtrasBtn");
+  
+      if (volverAtrasBtn) {
+          volverAtrasBtn.addEventListener("click", function() {
+              window.history.back();
+          });
+      }
+  });
+</script>
+
 {% endblock %}

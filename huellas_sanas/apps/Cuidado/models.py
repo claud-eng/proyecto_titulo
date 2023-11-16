@@ -9,7 +9,7 @@ from apps.Cita.models import Mascota # Importa la clase Mascota
 
 # Clase para registrar fichas médicas y tratamientos para las mascotas
 class Ficha(models.Model):
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, default=1)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     mascota = models.ForeignKey(Mascota, on_delete=models.CASCADE)  # Relación con la mascota asociada a la ficha
     veterinario = models.ForeignKey(
         Empleado,

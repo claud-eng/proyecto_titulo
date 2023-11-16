@@ -58,6 +58,7 @@ class Cita(models.Model):
     )
     motivo = models.CharField(max_length=50, choices=MOTIVO_CHOICES)
     estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, default='Programada')  # Establece el valor por defecto
-
+    ha_pagado = models.BooleanField(default=False, verbose_name="¿Ha pagado?")
+    
     def __str__(self):
         return f'Cita para el cliente {self.cliente.user.username} con {self.veterinario.user.username} el {self.fecha} a las {self.hora}'

@@ -2,6 +2,9 @@ from django.shortcuts import render
 from django.conf import settings
 import sendgrid
 from sendgrid.helpers.mail import Mail
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+import base64
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -12,7 +15,7 @@ def home(request):
 def enviar_consulta(request):
     if request.method == 'POST':
         # Obtén los datos del formulario
-        correo_remitente = request.POST.get('correo')  # Obtén la dirección de correo del remitente
+        correo_remitente = request.POST.get('correo')  # Dirección de correo del remitente
         asunto = request.POST.get('asunto')
         mensaje = request.POST.get('mensaje')
 
@@ -27,13 +30,25 @@ def enviar_consulta(request):
         # Crea un objeto de correo electrónico
         from_email = 'huellassanas2023@gmail.com'
         to_email = 'huellassanas2023@gmail.com'
-        subject = 'Consulta recibida'  # Puedes establecer cualquier asunto que desees
+        subject = 'Consulta recibida'
         message = Mail(
             from_email=from_email,
             to_emails=to_email,
             subject=subject,
             plain_text_content=contenido_mensaje
         )
+
+        # Adjuntar imagen si está presente
+        if 'archivo' in request.FILES:
+            archivo = request.FILES['archivo']
+            contenido_archivo = base64.b64encode(archivo.read()).decode()  # Codificar en base64 y decodificar a string
+            adjunto = Attachment(
+                FileContent(contenido_archivo),
+                FileName(archivo.name),
+                FileType(archivo.content_type),
+                Disposition('attachment')
+            )
+            message.add_attachment(adjunto)
 
         # Envía el correo electrónico
         try:
