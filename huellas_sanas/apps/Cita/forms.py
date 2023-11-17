@@ -191,6 +191,12 @@ class EditarMascotaForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super(EditarMascotaForm, self).__init__(*args, **kwargs)
 
+        # Hacer los campos Nombre, Especie y Raza opcionales para veterinarios
+        if self.user and hasattr(self.user, 'empleado') and self.user.empleado.rol == 'Veterinario':
+            self.fields['nombre'].required = False
+            self.fields['especie'].required = False
+            self.fields['raza'].required = False
+
     class Meta:
         model = Mascota
         fields = ['nombre', 'especie', 'raza', 'estado']

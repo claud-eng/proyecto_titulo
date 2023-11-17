@@ -337,7 +337,6 @@ def ver_detalles_producto(request, producto_id):
 
     return render(request, 'Transaccion/ver_detalles_producto.html', {'producto': producto})
 
-@login_required
 def agregar_al_carrito(request, id, tipo):
     cantidad = int(request.POST.get('cantidad', 1))
 
@@ -377,7 +376,6 @@ def agregar_al_carrito(request, id, tipo):
 
     return redirect('carrito')
 
-@login_required
 def carrito(request):
     # Obtén la instancia de Cliente asociada con el usuario actual
     cliente = Cliente.objects.get(user=request.user)
@@ -396,12 +394,10 @@ def carrito(request):
 
     return render(request, 'Transaccion/carrito.html', {'carrito_items': carrito_items, 'total': total})
 
-@login_required
 def realizar_compra(request):
     # Tu lógica para procesar la compra aquí
     return render(request, 'Transaccion/realizar_compra.html')
 
-@login_required
 def eliminar_del_carrito(request, item_id):
     cliente = Cliente.objects.get(user=request.user)
 
@@ -417,7 +413,6 @@ def eliminar_del_carrito(request, item_id):
     # Redirige de nuevo a la vista del carrito
     return redirect('carrito')
 
-@login_required
 def vaciar_carrito(request):
     cliente = Cliente.objects.get(user=request.user)
 
@@ -429,7 +424,6 @@ def vaciar_carrito(request):
     # Redirige de nuevo a la vista del carrito
     return redirect('carrito')
 
-@login_required
 def aumentar_cantidad(request, item_id):
     cliente = Cliente.objects.get(user=request.user)
 
@@ -441,7 +435,6 @@ def aumentar_cantidad(request, item_id):
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-@login_required
 def disminuir_cantidad(request, item_id):
     cliente = Cliente.objects.get(user=request.user)
 
@@ -453,7 +446,6 @@ def disminuir_cantidad(request, item_id):
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-@login_required
 @transaction.atomic
 def crear_orden_de_compra(usuario, carrito_items, total):
     """
@@ -488,7 +480,6 @@ def crear_orden_de_compra(usuario, carrito_items, total):
 
     return orden
 
-@login_required
 def iniciar_transaccion(request):
     cliente = Cliente.objects.get(user=request.user)
 
@@ -528,7 +519,6 @@ def iniciar_transaccion(request):
         print(e.message)
         return HttpResponse("Error al crear la transacción: " + str(e.message))
 
-@login_required
 def generar_comprobante_pdf_correo(orden):
     buffer = BytesIO()
 
@@ -574,7 +564,6 @@ def generar_comprobante_pdf_correo(orden):
     buffer.seek(0)
     return buffer
 
-@login_required
 def transaccion_finalizada(request):
     token_ws = request.GET.get('token_ws')
     cliente = Cliente.objects.get(user=request.user)
@@ -683,7 +672,6 @@ def transaccion_finalizada(request):
     except TransbankError as e:
         return HttpResponse(f"Error al procesar la transacción: {e.message}")
 
-@login_required
 def listar_ventas_online(request):
     cliente_query = request.GET.get('cliente', '')
 
@@ -719,7 +707,6 @@ def listar_ventas_online(request):
 
     return render(request, 'Transaccion/listar_ventas_online.html', context)
 
-@login_required
 def generar_comprobante_online(request, numero_orden):
     orden = get_object_or_404(OrdenDeCompra, numero_orden=numero_orden)
     detalles = DetalleOrden.objects.filter(orden_compra=orden)
@@ -768,7 +755,6 @@ def generar_comprobante_online(request, numero_orden):
     p.save()
     return response
 
-@login_required
 def agregar_venta(request):
     orden_venta_form = OrdenDeVentaForm(request.POST or None)
     detalle_formset = DetalleOrdenVentaFormset(request.POST or None, prefix='productos')
@@ -872,7 +858,6 @@ def agregar_venta(request):
     }
     return render(request, 'Transaccion/agregar_venta.html', context)
 
-@login_required
 def listar_ventas(request):
     # Obtener el valor de búsqueda del cliente desde la URL
     cliente_query = request.GET.get('cliente', '')
@@ -923,7 +908,6 @@ def listar_ventas(request):
         'cliente_query': cliente_query,  # Agregamos esta línea para utilizarla en la plantilla HTML
     })
 
-@login_required
 def generar_comprobante(request, id_venta):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="comprobante_venta_{id_venta}.pdf"'
@@ -984,7 +968,6 @@ def top_cinco_servicios_vendidos(anio, mes):
     fecha_fin = datetime(anio, mes + 1, 1) if mes < 12 else datetime(anio + 1, 1, 1)
     return Servicio.objects.filter(detalleordenventa__orden_venta__fecha_creacion__range=[fecha_inicio, fecha_fin]).annotate(total_vendido=Sum('detalleordenventa__cantidad')).order_by('-total_vendido')[:5]
 
-
 def generar_grafico_base64(datos):
     fig, ax = plt.subplots()
     ax.pie(datos['values'], labels=datos['labels'], autopct='%1.1f%%')
@@ -997,7 +980,6 @@ def generar_grafico_base64(datos):
     graphic = base64.b64encode(image_png)
     graphic = graphic.decode('utf-8')
     return graphic
-
 
 def reportes_ventas(request):
     anio_actual = datetime.now().year
@@ -1068,7 +1050,6 @@ MES_ESPANOL = {
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
 
-@login_required
 def exportar_pdf(request):
     anio = request.GET.get('anioParaPDF', str(datetime.now().year))
     mes = request.GET.get('mesParaPDF', str(datetime.now().month))

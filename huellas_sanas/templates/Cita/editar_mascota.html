@@ -3,6 +3,17 @@
 {% block title %}Editar Mascota{% endblock %}
 
 {% block content %}
+{% if form.errors %}
+    <div class="alert alert-danger">
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
     <div class="container mt-5">
         <h2>Editar Mascota</h2>
         <form method="post">
