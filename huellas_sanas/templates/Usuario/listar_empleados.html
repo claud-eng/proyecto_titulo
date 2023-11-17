@@ -61,9 +61,11 @@
                     <td>{{ c.numero_telefono }}</td> <!-- Agregar campo Número de Teléfono -->
                     <td>{{ c.rol }}</td>
                     <td>
+                      <div class="d-flex align-items-center">
                         <!-- Botones para editar y borrar empleado -->
-                        <a href="{% url 'editar_empleado' c.id %}" class="btn btn-primary btn-sm">Editar</a>
-                        <a href="{% url 'confirmar_borrar_empleado' c.id %}" class="btn btn-danger btn-sm">Borrar</a>
+                          <a href="{% url 'editar_empleado' c.id %}" class="btn btn-primary btn-sm">Editar</a>
+                          <a href="{% url 'confirmar_borrar_empleado' c.id %}" class="btn btn-danger btn-sm ml-2">Borrar</a>
+                      </div>
                     </td>
                 </tr>
                 {% endfor %}
