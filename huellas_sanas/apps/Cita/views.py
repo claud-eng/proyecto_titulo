@@ -283,16 +283,34 @@ def borrar_mascota(request, mascota_id):
 @login_required
 def editar_mascota(request, mascota_id):
     mascota = get_object_or_404(Mascota, pk=mascota_id)
-    
+    user = request.user
+
     if request.method == "POST":
-        form = EditarMascotaForm(request.POST, instance=mascota, user=request.user)
+        form = EditarMascotaForm(request.POST, instance=mascota, user=user)
+
+        if hasattr(user, 'empleado') and user.empleado.rol == 'Veterinario':
+            form.fields['nombre'].disabled = True
+            form.fields['especie'].disabled = True
+            form.fields['raza'].disabled = True
+
         if form.is_valid():
-            form.save()
+            # Crear un nuevo objeto Mascota sin guardar
+            mascota_editada = form.save(commit=False)
+
+            # Si el usuario es un veterinario, mantener los valores originales de ciertos campos
+            if hasattr(user, 'empleado') and user.empleado.rol == 'Veterinario':
+                mascota_editada.nombre = mascota.nombre
+                mascota_editada.especie = mascota.especie
+                mascota_editada.raza = mascota.raza
+
+            # Guardar el objeto Mascota con los cambios
+            mascota_editada.save()
+
             messages.success(request, 'Mascota editada con éxito.')
             return redirect('listar_mascotas')
         else:
             messages.error(request, "Se encontraron errores en el formulario.")
     else:
-        form = EditarMascotaForm(instance=mascota, user=request.user)
-    
+        form = EditarMascotaForm(instance=mascota, user=user)
+
     return render(request, 'Cita/editar_mascota.html', {'form': form, 'mascota': mascota})
