@@ -81,3 +81,7 @@ Cuentas de Prueba
         Veterinario 2: amanda@huellassanas.cl
         Recepcionista: francisca@huellassanas.cl
         Contraseña para todas: duoc@2023
+        
+En este link puedes encontrar las tarjetas de prueba para realizar los pagos tras añadir productos y/o servicios al carrito de compras: 
+
+https://www.transbankdevelopers.cl/documentacion/como_empezar#tarjetas-de-prueba
