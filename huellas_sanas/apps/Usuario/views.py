@@ -9,6 +9,7 @@ from django.contrib import messages
 from .forms import CustomClienteForm
 from .forms import CambiarContraseñaClienteForm
 from django.contrib.auth.models import User  # Importa el modelo User
+from django.contrib.auth import logout
 
 # Create your views here.
 
@@ -160,9 +161,16 @@ def cambiar_contraseña_cliente(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Contraseña cambiada con éxito.')
+            
+            # Cerrar la sesión del usuario
+            logout(request)
+            
+            # Redirigir al usuario a la página de inicio de sesión
+            return redirect('login')
+
     else:
         form = CambiarContraseñaClienteForm(request.user)
-    
+
     return render(request, 'Usuario/cambiar_contraseña_cliente.html', {'form': form})
 
 @login_required
