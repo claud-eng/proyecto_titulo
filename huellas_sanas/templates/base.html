@@ -75,6 +75,7 @@
                                 </li>
                             {% elif user.empleado %}
                             {% if user.empleado.rol == 'Administrador' %}
+                                    <!-- Opciones para Administrador -->
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
                             </li>
@@ -88,6 +89,7 @@
                                 <a class="nav-link" href="{% url 'gestionar_cuentas' %}">Gestionar cuentas</a>
                             </li>
                         {% elif user.empleado.rol == 'Veterinario' %}
+                                    <!-- Opciones para Veterinario -->
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
                             </li>
@@ -162,15 +164,18 @@
                         <h3>Av. Las Condes 7050</h3>
                         <p>© 2022-2023 - Huellas Sanas S.A. - Todos los derechos reservados</p>
                     </div>
+                    <div class="col-md-6 d-flex justify-content-center align-items-center">
+                        <p>¿Tienes preguntas? Llámanos al <a href="tel:+56912345678">+56 9 1234 5678</a></p>
+                    </div>
                 </div>
                 <div class="col-md-6 d-flex align-items-center">
                     <div>
                         <h3>¡Síguenos!</h3>
-                        <!-- Agrega los logros de Twitter e Instagram con un tamaño específico -->
+                        <!-- Agrega los logos de Twitter e Instagram con un tamaño específico -->
                         <a href="https://twitter.com/huellassanas_sa/" target="_blank"><img src="{% static 'images/img/twitter_logo.png' %}" alt="Twitter" width="40" height="40" class="mr-3"></a>
                         <a href="https://www.instagram.com/huellassanas_sa/" target="_blank"><img src="{% static 'images/img/instagram_logo.png' %}" alt="Instagram" width="40" height="40"></a>
                     </div>
-                </div>
+                </div>                
             </div>
         </div>
     </footer>
