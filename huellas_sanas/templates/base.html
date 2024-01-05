@@ -10,7 +10,8 @@
     <!-- Estilos CSS -->
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
 </head>
-<body>
+<body>    
+
     <header>
         <!-- Navbar de navegación -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -24,6 +25,7 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ml-auto">
+                        <!-- Opciones generales del menú -->
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'home' %}">Inicio</a>
                         </li>
@@ -33,112 +35,90 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'preguntas_frecuentes' %}">Preguntas frecuentes</a>
                         </li>
+                        <!-- La opción Contáctanos se muestra solo para usuarios no autenticados o clientes -->
+                        {% if not user.is_authenticated or user.cliente %}
                         <li class="nav-item">
-                            {% if not user.is_authenticated or user.cliente %}
-                                <a class="nav-link" href="{% url 'enviar_consulta' %}">Contáctanos</a>
-                            {% endif %}
+                            <a class="nav-link" href="{% url 'enviar_consulta' %}">Contáctanos</a>
                         </li>
-                        
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'catalogo_servicios' %}">Servicios</a>
                         </li>
-                        
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'catalogo_productos' %}">Productos</a>
                         </li>
-
                         {% if user.is_authenticated %}
+                            <!-- Menú Desplegable de Opciones de Perfil -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProfile" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Panel de control
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdownProfile">
+                                    {% if user.cliente %}
+                                        <!-- Opciones para clientes -->
+                                        <a class="dropdown-item" href="{% url 'listar_mascotas' %}">Revisar estado de mi mascota</a>
+                                        <a class="dropdown-item" href="{% url 'listar_fichas' %}">Visualizar ficha médica</a>
+                                        <a class="dropdown-item" href="{% url 'gestionar_compras' %}">Visualizar historial de compras</a>
+                                        <a class="dropdown-item" href="{% url 'actualizar_datos_personales_cliente' %}">Actualizar datos personales</a>
+                                        <a class="dropdown-item" href="{% url 'cambiar_contraseña_cliente' %}">Cambiar contraseña</a>
+                                        <a class="dropdown-item" href="{% url 'listar_citas' %}">Agendar cita</a>
+                                        </a>
+                                    {% elif user.empleado %}
+                                        {% if user.empleado.rol == 'Administrador' %}
+                                            <!-- Opciones para Administrador -->
+                                            <a class="dropdown-item" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
+                                            <a class="dropdown-item" href="{% url 'gestionar_inventario' %}">Gestionar inventario</a>
+                                            <a class="dropdown-item" href="{% url 'reportes_ventas' %}">Visualizar reporte de ventas presenciales</a>
+                                            <a class="dropdown-item" href="{% url 'gestionar_cuentas' %}">Gestionar cuentas</a>
+                                        {% elif user.empleado.rol == 'Veterinario' %}
+                                            <!-- Opciones para Veterinario -->
+                                            <a class="dropdown-item" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
+                                            <a class="dropdown-item" href="{% url 'listar_fichas' %}">Gestionar ficha médica</a>
+                                        {% elif user.empleado.rol == 'Recepcionista' %}
+                                            <!-- Opciones para Recepcionista -->
+                                            <a class="dropdown-item" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
+                                            <a class="dropdown-item" href="{% url 'gestionar_inventario' %}">Visualizar inventario</a>
+                                            <a class="dropdown-item" href="{% url 'listar_citas' %}">Gestionar citas</a>
+                                            <a class="dropdown-item" href="{% url 'listar_ventas' %}">Gestionar ventas presenciales</a>
+                                            <a class="dropdown-item" href="{% url 'listar_ventas_online' %}">Visualizar ventas online</a>
+                                            <a class="dropdown-item" href="{% url 'listar_clientes' %}">Gestionar clientes</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% endif %}
+                            {% if user.is_authenticated %}
                             {% if user.cliente %}
-                                <!-- Opciones para clientes -->
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'listar_mascotas' %}">Revisar estado de mi mascota</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'listar_fichas' %}">Visualizar ficha médica</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'gestionar_compras' %}">Visualizar historial de compras</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'actualizar_datos_personales_cliente' %}">Actualizar datos personales</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'cambiar_contraseña_cliente' %}">Cambiar contraseña</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link agendar-hora" href="{% url 'listar_citas' %}">Agendar cita</a> 
-                                </li>
+                                <!-- Botón Ir al Carrito para clientes -->
                                 <li class="nav-item">
                                     <a class="nav-link" href="{% url 'carrito' %}">
                                         <button class="btn btn-success">Ir al Carrito</button>
                                     </a>
                                 </li>
-                            {% elif user.empleado %}
-                            {% if user.empleado.rol == 'Administrador' %}
-                                    <!-- Opciones para Administrador -->
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'gestionar_inventario' %}">Gestionar inventario</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'reportes_ventas' %}">Visualizar reporte de ventas presenciales</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'gestionar_cuentas' %}">Gestionar cuentas</a>
-                            </li>
-                        {% elif user.empleado.rol == 'Veterinario' %}
-                                    <!-- Opciones para Veterinario -->
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'listar_fichas' %}">Gestionar ficha médica</a>
-                            </li>
-                                {% elif user.empleado.rol == 'Recepcionista' %}
-                                    <!-- Opciones para Recepcionista -->
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="{% url 'listar_mascotas' %}">Gestionar estado de mascota</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="{% url 'gestionar_inventario' %}">Visualizar inventario</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link agendar-hora" href="{% url 'listar_citas' %}">Gestionar citas</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link gestionar-ventas" href="{% url 'listar_ventas' %}">Gestionar ventas presenciales</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="{% url 'listar_ventas_online' %}">Visualizar ventas online</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="{% url 'listar_clientes' %}">Gestionar clientes</a>
-                                    </li>
-                                {% endif %}
                             {% endif %}
+
+                        <!-- Opción Cerrar Sesión -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">Cerrar sesión</a>
+                        </li>
+
+                        <!-- Mensaje de bienvenida y rol del usuario -->
+                        <li class="nav-item">
+                            <p class="nav-link welcome-message"><strong>Bienvenido/a:</strong> <br> <span class="username">{{ user.first_name }} {{ user.last_name }}</span></p>
+                        </li>
+                        {% if user.cliente %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'logout' %}">Cerrar sesión</a>
+                                <p class="nav-link"><strong class="rol-label">Rol:</strong> <span class="rol-value cliente-rol">Cliente</span></p>
                             </li>
+                        {% elif user.empleado %}
                             <li class="nav-item">
-                                <p class="nav-link welcome-message"><strong>Bienvenido/a:</strong> <br> <span class="username">{{ user.first_name }} {{ user.last_name }}</span></p>
+                                <p class="nav-link"><strong class="rol-label">Rol:</strong> <span class="rol-value empleado-rol">{{ user.empleado.rol }}</span></p>
                             </li>
-                            {% if user.is_authenticated %}
-                            {% if user.cliente %}
-                                <li class="nav-item">
-                                    <p class="nav-link"><strong class="rol-label">Rol:</strong> <span class="rol-value cliente-rol">Cliente</span></p>
-                                </li>
-                            {% elif user.empleado %}
-                                <li class="nav-item">
-                                    <p class="nav-link"><strong class="rol-label">Rol:</strong> <span class="rol-value empleado-rol">{{ user.empleado.rol }}</span></p>
-                                </li>
-                            {% endif %}
                         {% endif %}
                         {% else %}
                             <!-- La opción "Agendar hora" se muestra para usuarios no autenticados -->
                             <li class="nav-item">
-                                <a class="nav-link agendar-hora" href="{% url 'agendar_cita_sin_login' %}">Agendar cita</a> <!-- Aplicamos la clase CSS aquí -->
+                                <a class="nav-link agendar-hora" href="{% url 'agendar_cita_sin_login' %}">Agendar cita</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'login' %}">Iniciar sesión</a>
@@ -146,7 +126,6 @@
                         {% endif %}
                     </ul>
                 </div>
-                
             </div>
         </nav>
     </header>

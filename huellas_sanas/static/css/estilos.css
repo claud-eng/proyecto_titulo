@@ -111,3 +111,30 @@
         text-decoration: none; /* Elimina el subrayado del texto */
         font-weight: bold; /* Texto en negrita para el botón */
     }
+
+/* Cambiar el color de fondo de los elementos del menú al pasar el mouse */
+.navbar-nav .nav-link:hover {
+    background-color: #f0f0f0; 
+    color: #7da467; 
+}
+
+/* Cambiar el color de los elementos desplegables */
+.navbar-nav .dropdown-menu .dropdown-item:hover {
+    background-color: #f0f0f0; /* Igual que arriba */
+    color: #7da467; /* Igual que arriba */
+}
+
+/* Estilo por defecto para pantallas pequeñas */
+.nav-link.dropdown-toggle {
+    white-space: nowrap; /* Asegura que el texto esté en una sola línea */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Estilos para pantallas más grandes */
+@media (min-width: 992px) { 
+    .nav-link.dropdown-toggle {
+        white-space: normal; /* Permite que el texto pase a la siguiente línea */
+        line-height: 1.2; /* Ajusta el espacio entre las líneas si es necesario */
+    }
+}
