@@ -1,6 +1,6 @@
 README.md para el Repositorio de GitHub del proyecto Sistema de Gestión Centro de Cuidado Huellas Sanas
 
-El proyecto Sistema de Gestión Centro de Cuidado Huellas Sanas, desarrollado por Marcelo y Claudio, ofrece una solución integral para mejorar la experiencia de clientes y empleados de la veterinaria. Incluye una plataforma en línea para gestionar cuentas y registros de mascotas, una tienda online con un sistema de pago seguro, y la gestión de citas. Adicionalmente, cuenta con un sistema de gestión de inventario, administración de personal, generación de informes estadísticos, y recursos para 
+El proyecto Sistema de Gestión Centro de Cuidado Huellas Sanas, desarrollado por Marcelo y Claudio, ofrece una solución integral para mejorar la experiencia de clientes y empleados de la veterinaria. Incluye una plataforma en línea para gestionar cuentas y registros de mascotas, una tienda online con un sistema de pago seguro, y la gestión de citas. Adicionalmente, cuenta con un sistema de gestión de inventario, administración de personal, generación de informes estadísticos y recursos para 
 el cuidado de mascotas. Destaca su sistema POS para el Recepcionista, que optimiza las ventas realizadas de forma presencial y el seguimiento de transacciones. El proyecto busca mejorar la eficiencia del centro y enriquecer la experiencia del cliente.
 
 Estado del Proyecto
@@ -53,9 +53,9 @@ Migración de la Base de Datos:
         python manage.py migrate
 
     Poblar la Base de Datos:
-        Ejecutar el script llamado: Script para poblar la base de datos.sql ubicado en el siguiente enlace:
+        Ejecutar el script llamado: Script db.sql ubicado en el siguiente enlace:
 
-        https://drive.google.com/file/d/1HmqT3IfAvW9bVzopG_VWE1CxcOX3XfOK/view?usp=sharing
+        https://drive.google.com/file/d/1nu9E6yCX29mS0j_CfD-XO_ZIpArw8683/view?usp=sharing
 
         Nota: Al ejecutar el script, se abrirá una ventana, seleccionar la opción Don't Save.
 
@@ -64,7 +64,7 @@ Migración de la Base de Datos:
         Configurar EMAIL_HOST_PASSWORD con la API key de SendGrid.
         Obtener el código de la API key en el siguiente link: 
 
-        https://drive.google.com/file/d/11R4_t12Wfc3ZeqhkhRCLxhQR8fuDR0ms/view?usp=sharing
+        https://drive.google.com/file/d/14clPNly0CYS4EXgOTMjzyundTrGS0JpB/view?usp=sharing
 
     Ejecución del Sistema:
         En la consola, en el directorio del manage.py, ejecutar: python manage.py runserver.
