@@ -139,7 +139,7 @@ STATIC_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static',
 
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
-EMAIL_HOST_PASSWORD = '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' # this is your API key
+EMAIL_HOST_PASSWORD = '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' # this is your API key
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
